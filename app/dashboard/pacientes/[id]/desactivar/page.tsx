@@ -43,7 +43,7 @@ export default function DesactivarPacientePage() {
         <button
           onClick={onDisable}
           disabled={busy}
-          className="bg-red-600 text-primary-foreground rounded-md"
+          className="bg-red-600 text-white rounded-md"
           style={{ padding: "10px 14px" }}
         >
           {busy ? "Desactivando..." : "Sí, desactivar"}
@@ -51,7 +51,7 @@ export default function DesactivarPacientePage() {
 
         <Link
           href={`/dashboard/pacientes/${pacienteId}`}
-          className="bg-primary border rounded-md"
+          className="bg-slate-800 border rounded-md"
           style={{ padding: "10px 14px" }}
         >
           Cancelar

@@ -1,7 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { getDB } from "@/lib/db";
-import { Apple, Calculator, ClipboardList, Users } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,16 +36,16 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button asChild className="bg-primary border-2">
+          <Button asChild className="bg-slate-800 border-2">
             <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
           </Button>
-          <Button variant="secondary" asChild className="bg-primary border-2">
+          <Button variant="secondary" asChild className="bg-slate-800 border-2">
             <Link href="/dashboard/pacientes">Ver pacientes</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -79,23 +77,38 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Planes creados
+              Planes
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{totalPlanes}</div>
             <p className="text-sm text-muted-foreground mt-1">
-              Planes alimentarios guardados
+              Planes alimentarios creados
             </p>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid gap-3 md:grid-cols-4">
-        <ToolLink href="/dashboard/pacientes" icon={<Users />} title="Pacientes" />
-        <ToolLink href="/dashboard/pacientes/nuevo" icon={<ClipboardList />} title="Nuevo paciente" />
-        <ToolLink href="/dashboard/calculadora" icon={<Calculator />} title="Calculadora" />
-        <ToolLink href="/dashboard/alimentos" icon={<Apple />} title="Alimentos" />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Atajos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            <Button variant="outline" asChild className="bg-slate-800">
+              <Link href="/dashboard/pacientes">Buscar paciente</Link>
+            </Button>
+            <Button variant="outline" asChild className="bg-slate-800">
+              <Link href="/dashboard/pacientes/nuevo">Cargar nuevo paciente</Link>
+            </Button>
+            <Button variant="outline" asChild className="bg-slate-800">
+              <Link href="/dashboard/calculadora">Calculadora energética</Link>
+            </Button>
+            <Button variant="outline" asChild className="bg-slate-800">
+              <Link href="/dashboard/alimentos">Banco de alimentos</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -130,14 +143,5 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function ToolLink(props: { href: string; icon: ReactNode; title: string }) {
-  return (
-    <Link href={props.href} className="flex items-center gap-3 rounded-md border bg-card p-4 font-medium hover:bg-accent">
-      <span className="[&_svg]:size-5">{props.icon}</span>
-      {props.title}
-    </Link>
   );
 }

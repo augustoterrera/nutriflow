@@ -104,7 +104,7 @@ export default function EditarPacientePage() {
     <div style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <h1 style={{ margin: 0 }}>Editar paciente</h1>
-        <Link href={`/dashboard/pacientes/${pacienteId}`} style={{ marginLeft: "auto", padding: 10 }} className="bg-primary border rounded-md">
+        <Link href={`/dashboard/pacientes/${pacienteId}`} style={{ marginLeft: "auto", padding: 10 }} className="bg-slate-800 border rounded-md">
           Volver
         </Link>
       </div>
@@ -112,22 +112,22 @@ export default function EditarPacientePage() {
       <form onSubmit={onSubmit} style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "repeat(2, 1fr)" }}>
         <label style={{ display: "grid", gap: 6 }}>
           <span>DNI</span>
-          <input name="dni" defaultValue={p.dni} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="dni" defaultValue={p.dni} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Nombre completo</span>
-          <input name="nombre_completo" defaultValue={p.nombre_completo} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="nombre_completo" defaultValue={p.nombre_completo} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Teléfono</span>
-          <input name="telefono" defaultValue={p.telefono ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="telefono" defaultValue={p.telefono ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Sexo</span>
-          <input name="sexo" defaultValue={p.sexo ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="sexo" defaultValue={p.sexo ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
@@ -137,32 +137,32 @@ export default function EditarPacientePage() {
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Email</span>
-          <input name="email" defaultValue={p.email ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="email" defaultValue={p.email ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Dirección</span>
-          <input name="direccion" defaultValue={p.direccion ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="direccion" defaultValue={p.direccion ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Ocupación</span>
-          <input name="ocupacion" defaultValue={p.ocupacion ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="ocupacion" defaultValue={p.ocupacion ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Estado civil</span>
-          <input name="estado_civil" defaultValue={p.estado_civil ?? ""} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <input name="estado_civil" defaultValue={p.estado_civil ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         <label style={{ display: "grid", gap: 6, gridColumn: "span 2" }}>
           <span>Notas</span>
-          <textarea name="notas" defaultValue={p.notas ?? ""} rows={4} style={{ padding: 10 }} className="border border-border rounded-md" />
+          <textarea name="notas" defaultValue={p.notas ?? ""} rows={4} style={{ padding: 10 }} className="border border-white rounded-md" />
         </label>
 
         {err ? <div style={{ gridColumn: "span 2", color: "tomato" }}>{err}</div> : null}
 
-        <button type="submit" disabled={saving} className="bg-blue-700 text-primary-foreground rounded-md" style={{ padding: 10, width: 220, gridColumn: "span 2" }}>
+        <button type="submit" disabled={saving} className="bg-blue-700 text-white rounded-md" style={{ padding: 10, width: 220, gridColumn: "span 2" }}>
           {saving ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>

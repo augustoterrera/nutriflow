@@ -67,14 +67,16 @@ export default function SetupPage() {
             Definí un PIN de 4 a 6 dígitos para acceder a la app.
           </p>
 
-          <form onSubmit={onSubmit} className="mt-4 space-y-4">
+          <form onSubmit={onSubmit} autoComplete="off" className="mt-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="pin">PIN</Label>
               <Input
                 id="pin"
                 name="pin"
+                type="password"
                 inputMode="numeric"
                 placeholder="Ej: 1234"
+                autoComplete="new-password"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
               />
@@ -85,8 +87,10 @@ export default function SetupPage() {
               <Input
                 id="pin2"
                 name="pin2"
+                type="password"
                 inputMode="numeric"
                 placeholder="Repetí el PIN"
+                autoComplete="new-password"
                 value={pin2}
                 onChange={(e) => setPin2(e.target.value)}
               />
@@ -94,7 +98,7 @@ export default function SetupPage() {
 
             {err ? <div className="text-sm text-destructive">{err}</div> : null}
 
-            <Button type="submit" className="w-full  bg-primary hover:bg-blue-700" disabled={loading}>
+            <Button type="submit" className="w-full  bg-slate-700 hover:bg-blue-700" disabled={loading}>
               {loading ? "Guardando..." : "Guardar PIN"}
             </Button>
           </form>

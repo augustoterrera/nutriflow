@@ -36,7 +36,7 @@ export default async function NuevaAnamnesisPage(props: {
                 <Link
                     href={`/dashboard/pacientes/${pacienteId}`}
                     style={{ marginLeft: "auto", padding: 10 }}
-                    className="bg-primary border border-border rounded-md"
+                    className="bg-slate-700 border border-white rounded-md"
                 >
                     Volver
                 </Link>
@@ -50,7 +50,7 @@ export default async function NuevaAnamnesisPage(props: {
 
                 <label style={{ display: "grid", gap: 6 }}>
                     <span>Tipo de dieta</span>
-                    <select name="tipo_dieta" defaultValue="omnivoro" className="border border-border rounded-md w-60" style={{ padding: 10 }}>
+                    <select name="tipo_dieta" defaultValue="omnivoro" className="border border-white rounded-md w-60" style={{ padding: 10 }}>
                         <option className="bg-black" value="omnivoro">Omnívoro</option>
                         <option className="bg-black" value="vegetariano">Vegetariano</option>
                         <option className="bg-black" value="vegano">Vegano</option>
@@ -63,7 +63,7 @@ export default async function NuevaAnamnesisPage(props: {
                         name="frutas_no_gusta"
                         placeholder='Ej: "banana, manzana"'
                         style={{ padding: 10 }}
-                        className="border border-border rounded-md "
+                        className="border border-white rounded-md "
                     />
                 </label>
 
@@ -73,13 +73,13 @@ export default async function NuevaAnamnesisPage(props: {
                         name="verduras_no_gusta"
                         placeholder='Ej: "lechuga, espinaca"'
                         style={{ padding: 10 }}
-                        className="border border-border rounded-md "
+                        className="border border-white rounded-md "
                     />
                 </label>
 
                 <label style={{ display: "grid", gap: 6 }}>
                     <span>Agua</span>
-                    <input className="border border-border rounded-md w-60" name="consumo_agua" placeholder="Ej: 2L/día" style={{ padding: 10 }} />
+                    <input className="border border-white rounded-md w-60" name="consumo_agua" placeholder="Ej: 2L/día" style={{ padding: 10 }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 6 }}>
@@ -88,13 +88,13 @@ export default async function NuevaAnamnesisPage(props: {
                         name="actividad_fisica"
                         placeholder="Ej: camina 3x/sem"
                         style={{ padding: 10 }}
-                        className="border border-border rounded-md w-60"
+                        className="border border-white rounded-md w-60"
                     />
                 </label>
 
                 <label style={{ display: "grid", gap: 6 }}>
                     <span>Observaciones</span>
-                    <textarea className="border border-border rounded-md" name="observaciones" rows={6} style={{ padding: 10 }} />
+                    <textarea className="border border-white rounded-md" name="observaciones" rows={6} style={{ padding: 10 }} />
                 </label>
 
                 <button type="submit" style={{ padding: 10 }} className="bg-blue-600 rounded-md">

@@ -64,13 +64,13 @@ export default async function MedicionesHistorialPage(props: {
           <Link 
           href={`/dashboard/pacientes/${id}`} 
           style={{ padding: 10 }} 
-          className="bg-primary rounded-md border">
+          className="bg-slate-800 rounded-md border">
             Volver al paciente
           </Link>
           <Link 
           href={`/dashboard/pacientes/${id}/mediciones/nueva`}
            style={{ padding: 10 }} 
-           className="bg-primary rounded-md border">
+           className="bg-slate-800 rounded-md border">
             Nueva medición
           </Link>
         </div>
@@ -135,14 +135,14 @@ export default async function MedicionesHistorialPage(props: {
                       <Link
                         href={`/dashboard/pacientes/${id}/mediciones/${m.id}/editar`}
                         style={{ padding: "6px 10px", display: "inline-block" }}
-                        className="bg-blue-700 hover:bg-blue-500 text-primary-foreground rounded-md"
+                        className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
                       >
                         Editar
                       </Link>
                       <Link
                         href={`/dashboard/pacientes/${id}/mediciones/${m.id}/eliminar`}
                         style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                        className="bg-red-600 hover:bg-red-500 text-primary-foreground m-2 rounded-md"
+                        className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
                       >
                         Eliminar
                       </Link>

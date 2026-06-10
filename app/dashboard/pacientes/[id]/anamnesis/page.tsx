@@ -61,14 +61,14 @@ export default async function AnamnesisHistorialPage(props: {
           <Link
             href={`/dashboard/pacientes/${pacienteId}`}
             style={{ padding: 10 }}
-            className="bg-primary border-2 rounded-md"
+            className="bg-slate-800 border-2 rounded-md"
           >
             Volver al paciente
           </Link>
           <Link
             href={`/dashboard/pacientes/${pacienteId}/anamnesis/nueva`}
             style={{ padding: 10 }}
-            className="bg-primary border-2 rounded-md"
+            className="bg-slate-800 border-2 rounded-md"
           >
             Nueva anamnesis
           </Link>
@@ -116,14 +116,14 @@ export default async function AnamnesisHistorialPage(props: {
                       <Link
                         href={`/dashboard/pacientes/${pacienteId}/anamnesis/${a.id}/editar`}
                         style={{ padding: "6px 10px", display: "inline-block" }}
-                        className="bg-blue-700 hover:bg-blue-500 text-primary-foreground rounded-md"
+                        className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
                       >
                         Editar
                       </Link>
                       <Link
                         href={`/dashboard/pacientes/${pacienteId}/anamnesis/${a.id}/eliminar`}
                         style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                        className="bg-red-600 hover:bg-red-500 text-primary-foreground m-2 rounded-md"
+                        className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
                       >
                         Eliminar
                       </Link>

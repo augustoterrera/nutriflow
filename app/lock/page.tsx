@@ -133,7 +133,7 @@ export default function LockPage() {
               ) : null}
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-blue-700" disabled={loading}>
+            <Button type="submit" className="w-full bg-slate-700 hover:bg-blue-700" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>

@@ -111,7 +111,7 @@ export default async function NuevaMedicionPage(props: {
           </p>
         </div>
 
-        <Button variant="secondary" asChild className="bg-primary border">
+        <Button variant="secondary" asChild className="bg-slate-800 border">
           <Link href={`/dashboard/pacientes/${pacienteId}`}>Volver</Link>
         </Button>
       </div>
@@ -190,8 +190,8 @@ export default async function NuevaMedicionPage(props: {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" className="border border-border bg-blue-600 rounded-md">Guardar</Button>
-              <Button variant="secondary" type="reset" className="border border-border bg-red-600">
+              <Button type="submit" className="border border-white bg-blue-600 rounded-md">Guardar</Button>
+              <Button variant="secondary" type="reset" className="border border-white bg-red-600">
                 Limpiar
               </Button>
             </div>

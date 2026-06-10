@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
-import { calcularICC, calcularIMC, edadDesdeFechaNacimiento, pesoIdealLorentz, riesgoICC, tmbMifflin } from "@/lib/calculos";
+import { calcularICC, edadDesdeFechaNacimiento, pesoIdealLorentz, riesgoICC, tmbMifflin } from "@/lib/calculos";
 import { ImcCard } from "@/components/pacientes/ImcCard";
 import { RiesgoCardiometabolico } from "@/components/pacientes/RiesgoCardiometabolico";
-import { EvolucionDialogLazy } from "@/components/pacientes/EvolucionDialogLazy";
 import {
     TrendingUp,
     TrendingDown,
     Minus,
     Activity
 } from "lucide-react";
+import { EvolucionDialogLazy } from "@/components/pacientes/EvolucionDialogLazy";
 
 export default async function PacientePage(props: {
     params: Promise<{ id: string }>;
@@ -76,10 +76,10 @@ export default async function PacientePage(props: {
                 </div>
 
                 <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
-                    <Link href="/dashboard/pacientes" style={{ padding: 8 }} className="bg-primary border-2 rounded-md">
+                    <Link href="/dashboard/pacientes" style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
                         Volver
                     </Link>
-                    <Link href={`/dashboard/pacientes/${id}/anamnesis/nueva`} style={{ padding: 8 }} className="bg-primary border-2 rounded-md">
+                    <Link href={`/dashboard/pacientes/${id}/anamnesis/nueva`} style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
                         Nueva anamnesis
                     </Link>
                 </div>
@@ -158,7 +158,7 @@ export default async function PacientePage(props: {
                         <Link
                             href={`/dashboard/pacientes/${id}/anamnesis/nueva`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-border rounded-md mt-6 mb-5"
+                            className="border border-white rounded-md mt-6 mb-5"
                         >
                             Nueva anamnesis
                         </Link>
@@ -166,7 +166,7 @@ export default async function PacientePage(props: {
                         <Link
                             href={`/dashboard/pacientes/${id}/anamnesis`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-border rounded-md mt-6 mb-5"
+                            className="border border-white rounded-md mt-6 mb-5"
                         >
                             Ver historial
                         </Link>
@@ -182,14 +182,14 @@ export default async function PacientePage(props: {
                         <Link
                             href={`/dashboard/pacientes/${id}/planes`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-border rounded-md"
+                            className="border border-white rounded-md"
                         >
                             Ver planes
                         </Link>
                         <Link
                             href={`/dashboard/pacientes/${id}/planes/nuevo`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-border rounded-md"
+                            className="border border-white rounded-md"
                         >
                             Nuevo plan
                         </Link>
@@ -243,9 +243,9 @@ export default async function PacientePage(props: {
                                     />
                                 ) : null}
                                 {edad && ultimaMedicion?.peso_kg && alturaRef ? (
-                                    <Link href={calcHref} className="rounded-md border border-border p-3 font-semibold hover:bg-accent">
+                                    <Link href={calcHref} className="rounded-md border border-white p-3 font-semibold hover:bg-white/10">
                                         Calcular kcal
-                                        <span className="block text-sm font-normal text-muted-foreground">Precargado con datos actuales</span>
+                                        <span className="block text-sm font-normal opacity-75">Precargado con datos actuales</span>
                                     </Link>
                                 ) : null}
                             </div>
@@ -254,14 +254,14 @@ export default async function PacientePage(props: {
                     <Link
                         href={`/dashboard/pacientes/${id}/mediciones/nueva`}
                         style={{ display: "inline-block", marginTop: 10, padding: 10 }}
-                        className="border border-border rounded-md"
+                        className="border border-white rounded-md"
                     >
                         Nueva medición
                     </Link>
                     <Link
                         href={`/dashboard/pacientes/${id}/mediciones`}
                         style={{ display: "inline-block", marginTop: 10, padding: 10 }}
-                        className="border border-border rounded-md m-2"
+                        className="border border-white rounded-md m-2"
                     >
                         Ver historial de mediciones
                     </Link>
@@ -423,12 +423,18 @@ function labelDieta(v: any) {
 
 function MiniMetric({ label, value, note, danger = false }: { label: string; value: string; note: string; danger?: boolean }) {
     return (
-        <div className="rounded-md border border-border bg-card p-3">
-            <div className="text-sm text-muted-foreground">{label}</div>
-            <div className="text-xl font-semibold">{value}</div>
-            <div className={danger ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>{note}</div>
+        <div className="rounded-md border border-white p-3">
+            <div style={{ opacity: 0.7, fontSize: 13 }}>{label}</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{value}</div>
+            <div style={{ fontSize: 13, color: danger ? "#ef4444" : undefined, opacity: danger ? 1 : 0.75 }}>{note}</div>
         </div>
     );
+}
+
+function calcularIMC(pesoKg: number, alturaCm: number) {
+    const m = alturaCm / 100;
+    if (!m || m === 0) return NaN;
+    return pesoKg / (m * m);
 }
 
 function renderRitmo(ultima: any, base: any, desdeInicio = false) {
