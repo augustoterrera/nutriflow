@@ -8,8 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "db:migrate": "node -r ts-node/register/transpile-only db/migrate.cjs.ts",
-    "db:seed": "sqlite3 data/tomi_nutri.sqlite < db/seed.sql"
+    "db:seed": "sqlite3 data/tomi_nutri.sqlite < db/seed.sql",
+    "db:seed:alimentos": "sqlite3 data/tomi_nutri.sqlite < db/seed_alimentos.sql"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@next/bundle-analyzer": "^16.1.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -48,6 +51,7 @@
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.15"
   }
 }

@@ -5,8 +5,8 @@ import { getDB } from "@/lib/db";
 const PAGE_SIZE = 15;
 
 export default async function MedicionesHistorialPage(props: {
-  params: Promise<{ id: string }> | { id: string };
-  searchParams?: Promise<{ p?: string }> | { p?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ p?: string }>;
 }) {
   const { id: idStr } = await props.params;
   const id = Number(idStr);
@@ -41,7 +41,8 @@ export default async function MedicionesHistorialPage(props: {
   const safeOffset = (safePage - 1) * PAGE_SIZE;
 
   const mediciones = await db.all(
-    `select id, fecha, peso_kg, altura_cm, cintura_cm
+    `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm,
+            grasa_pct, musculo_pct, brazo_cm, muneca_cm
      from mediciones
      where paciente_id = ?
      order by date(fecha) desc, id desc
@@ -63,13 +64,13 @@ export default async function MedicionesHistorialPage(props: {
           <Link 
           href={`/dashboard/pacientes/${id}`} 
           style={{ padding: 10 }} 
-          className="bg-slate-800 rounded-md border">
+          className="bg-primary rounded-md border">
             Volver al paciente
           </Link>
           <Link 
           href={`/dashboard/pacientes/${id}/mediciones/nueva`}
            style={{ padding: 10 }} 
-           className="bg-slate-800 rounded-md border">
+           className="bg-primary rounded-md border">
             Nueva medición
           </Link>
         </div>
@@ -89,6 +90,7 @@ export default async function MedicionesHistorialPage(props: {
               <th style={thStyle}>Cintura</th>
               <th style={thStyle}>IMC</th>
               <th style={thStyle}>WHtR</th>
+              <th style={thStyle}>Extra</th>
               <th style={{ ...thStyle, textAlign: "right" }}>Acciones</th>
             </tr>
           </thead>
@@ -96,7 +98,7 @@ export default async function MedicionesHistorialPage(props: {
           <tbody>
             {mediciones.length === 0 ? (
               <tr>
-                <td style={tdStyle} colSpan={7}>
+                <td style={tdStyle} colSpan={8}>
                   No hay mediciones cargadas.
                 </td>
               </tr>
@@ -120,19 +122,27 @@ export default async function MedicionesHistorialPage(props: {
                     <td style={tdStyle}>{m.cintura_cm ? `${Number(m.cintura_cm).toFixed(1)} cm` : "-"}</td>
                     <td style={tdStyle}>{imc !== null ? imc.toFixed(1) : "-"}</td>
                     <td style={tdStyle}>{whtr !== null ? whtr.toFixed(2) : "-"}</td>
+                    <td style={tdStyle}>
+                      {[
+                        m.grasa_pct ? `Grasa ${Number(m.grasa_pct).toFixed(1)}%` : null,
+                        m.musculo_pct ? `Músculo ${Number(m.musculo_pct).toFixed(1)}%` : null,
+                        m.brazo_cm ? `Brazo ${Number(m.brazo_cm).toFixed(1)} cm` : null,
+                        m.muneca_cm ? `Muñeca ${Number(m.muneca_cm).toFixed(1)} cm` : null,
+                      ].filter(Boolean).join(" · ") || "-"}
+                    </td>
 
                     <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
                       <Link
                         href={`/dashboard/pacientes/${id}/mediciones/${m.id}/editar`}
                         style={{ padding: "6px 10px", display: "inline-block" }}
-                        className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
+                        className="bg-blue-700 hover:bg-blue-500 text-primary-foreground rounded-md"
                       >
                         Editar
                       </Link>
                       <Link
                         href={`/dashboard/pacientes/${id}/mediciones/${m.id}/eliminar`}
                         style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                        className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
+                        className="bg-red-600 hover:bg-red-500 text-primary-foreground m-2 rounded-md"
                       >
                         Eliminar
                       </Link>

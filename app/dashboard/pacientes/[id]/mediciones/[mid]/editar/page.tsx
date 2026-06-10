@@ -19,6 +19,12 @@ async function editarMedicionAction(formData: FormData) {
   const pesoKg = toNullNumber(formData.get("peso_kg"));
   const alturaCm = toNullNumber(formData.get("altura_cm"));
   const cinturaCm = toNullNumber(formData.get("cintura_cm"));
+  const caderaCm = toNullNumber(formData.get("cadera_cm"));
+  const cuelloCm = toNullNumber(formData.get("cuello_cm"));
+  const grasaPct = toNullNumber(formData.get("grasa_pct"));
+  const musculoPct = toNullNumber(formData.get("musculo_pct"));
+  const brazoCm = toNullNumber(formData.get("brazo_cm"));
+  const munecaCm = toNullNumber(formData.get("muneca_cm"));
 
   if (!Number.isFinite(pacienteId) || !Number.isFinite(medicionId)) notFound();
   if (!fecha) throw new Error("La fecha es obligatoria.");
@@ -34,18 +40,18 @@ async function editarMedicionAction(formData: FormData) {
 
   await db.run(
     `update mediciones
-     set fecha = ?, peso_kg = ?, altura_cm = ?, cintura_cm = ?
+     set fecha = ?, peso_kg = ?, altura_cm = ?, cintura_cm = ?,
+         cadera_cm = ?, cuello_cm = ?, grasa_pct = ?, musculo_pct = ?,
+         brazo_cm = ?, muneca_cm = ?, actualizado_en = datetime('now')
      where id = ? and paciente_id = ?`,
-    [fecha, pesoKg, alturaCm, cinturaCm, medicionId, pacienteId]
+    [fecha, pesoKg, alturaCm, cinturaCm, caderaCm, cuelloCm, grasaPct, musculoPct, brazoCm, munecaCm, medicionId, pacienteId]
   );
 
   redirect(`/dashboard/pacientes/${pacienteId}/mediciones`);
 }
 
 export default async function EditarMedicionPage(props: {
-  params:
-    | Promise<{ id: string; mid: string }>
-    | { id: string; mid: string };
+  params: Promise<{ id: string; mid: string }>;
 }) {
   const { id: idStr, mid: midStr } = await props.params;
 
@@ -63,7 +69,8 @@ export default async function EditarMedicionPage(props: {
   if (!paciente) notFound();
 
   const medicion = await db.get(
-    `select id, fecha, peso_kg, altura_cm, cintura_cm
+    `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm,
+            grasa_pct, musculo_pct, brazo_cm, muneca_cm
      from mediciones
      where id = ? and paciente_id = ?`,
     [medicionId, pacienteId]
@@ -134,6 +141,35 @@ export default async function EditarMedicionPage(props: {
             placeholder="Ej: 92"
             style={inputStyle}
           />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ opacity: 0.8, fontSize: 13 }}>Cadera (cm)</label>
+          <input name="cadera_cm" inputMode="decimal" defaultValue={medicion.cadera_cm ?? ""} placeholder="Ej: 102" style={inputStyle} />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ opacity: 0.8, fontSize: 13 }}>Cuello (cm)</label>
+          <input name="cuello_cm" inputMode="decimal" defaultValue={medicion.cuello_cm ?? ""} placeholder="Ej: 38" style={inputStyle} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gap: 6 }}>
+            <label style={{ opacity: 0.8, fontSize: 13 }}>Grasa (%)</label>
+            <input name="grasa_pct" inputMode="decimal" defaultValue={medicion.grasa_pct ?? ""} placeholder="Ej: 22" style={inputStyle} />
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <label style={{ opacity: 0.8, fontSize: 13 }}>Músculo (%)</label>
+            <input name="musculo_pct" inputMode="decimal" defaultValue={medicion.musculo_pct ?? ""} placeholder="Ej: 38" style={inputStyle} />
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <label style={{ opacity: 0.8, fontSize: 13 }}>Brazo (cm)</label>
+            <input name="brazo_cm" inputMode="decimal" defaultValue={medicion.brazo_cm ?? ""} placeholder="Ej: 32" style={inputStyle} />
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <label style={{ opacity: 0.8, fontSize: 13 }}>Muñeca (cm)</label>
+            <input name="muneca_cm" inputMode="decimal" defaultValue={medicion.muneca_cm ?? ""} placeholder="Ej: 16" style={inputStyle} />
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>

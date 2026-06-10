@@ -94,7 +94,7 @@ export default function SetupPage() {
 
             {err ? <div className="text-sm text-destructive">{err}</div> : null}
 
-            <Button type="submit" className="w-full  bg-slate-700 hover:bg-blue-700" disabled={loading}>
+            <Button type="submit" className="w-full  bg-primary hover:bg-blue-700" disabled={loading}>
               {loading ? "Guardando..." : "Guardar PIN"}
             </Button>
           </form>

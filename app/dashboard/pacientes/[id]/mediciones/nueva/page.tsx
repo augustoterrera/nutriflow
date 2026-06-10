@@ -18,6 +18,10 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
   const cinturaRaw = String(formData.get("cintura_cm") ?? "").trim();
   const caderaRaw = String(formData.get("cadera_cm") ?? "").trim();
   const cuelloRaw = String(formData.get("cuello_cm") ?? "").trim();
+  const grasaRaw = String(formData.get("grasa_pct") ?? "").trim();
+  const musculoRaw = String(formData.get("musculo_pct") ?? "").trim();
+  const brazoRaw = String(formData.get("brazo_cm") ?? "").trim();
+  const munecaRaw = String(formData.get("muneca_cm") ?? "").trim();
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
 
   const toNum = (v: string) => {
@@ -31,6 +35,10 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
   const cintura_cm = toNum(cinturaRaw);
   const cadera_cm = toNum(caderaRaw);
   const cuello_cm = toNum(cuelloRaw);
+  const grasa_pct = toNum(grasaRaw);
+  const musculo_pct = toNum(musculoRaw);
+  const brazo_cm = toNum(brazoRaw);
+  const muneca_cm = toNum(munecaRaw);
 
   if (peso_kg !== null && (peso_kg <= 0 || peso_kg > 500)) {
     throw new Error("Peso inválido.");
@@ -46,11 +54,13 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
       paciente_id, fecha,
       peso_kg, altura_cm,
       cintura_cm, cadera_cm, cuello_cm,
+      grasa_pct, musculo_pct, brazo_cm, muneca_cm,
       observaciones
     ) values (
       ?, coalesce(?, date('now')),
       ?, ?,
       ?, ?, ?,
+      ?, ?, ?, ?,
       ?
     )`,
     [
@@ -61,6 +71,10 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
       cintura_cm,
       cadera_cm,
       cuello_cm,
+      grasa_pct,
+      musculo_pct,
+      brazo_cm,
+      muneca_cm,
       observaciones,
     ]
   );
@@ -69,7 +83,7 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
 }
 
 export default async function NuevaMedicionPage(props: {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id: idStr } = await props.params;
   const pacienteId = Number(idStr);
@@ -97,7 +111,7 @@ export default async function NuevaMedicionPage(props: {
           </p>
         </div>
 
-        <Button variant="secondary" asChild className="bg-slate-800 border">
+        <Button variant="secondary" asChild className="bg-primary border">
           <Link href={`/dashboard/pacientes/${pacienteId}`}>Volver</Link>
         </Button>
       </div>
@@ -142,6 +156,28 @@ export default async function NuevaMedicionPage(props: {
               </div>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-4">
+              <div className="space-y-2">
+                <Label htmlFor="grasa_pct">Grasa (%)</Label>
+                <Input id="grasa_pct" name="grasa_pct" inputMode="decimal" placeholder="Ej: 22" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="musculo_pct">Músculo (%)</Label>
+                <Input id="musculo_pct" name="musculo_pct" inputMode="decimal" placeholder="Ej: 38" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="brazo_cm">Brazo (cm)</Label>
+                <Input id="brazo_cm" name="brazo_cm" inputMode="decimal" placeholder="Ej: 32" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="muneca_cm">Muñeca (cm)</Label>
+                <Input id="muneca_cm" name="muneca_cm" inputMode="decimal" placeholder="Ej: 16" />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="observaciones">Observaciones</Label>
               <textarea
@@ -154,8 +190,8 @@ export default async function NuevaMedicionPage(props: {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" className="border border-white bg-blue-600 rounded-md">Guardar</Button>
-              <Button variant="secondary" type="reset" className="border border-white bg-red-600">
+              <Button type="submit" className="border border-border bg-blue-600 rounded-md">Guardar</Button>
+              <Button variant="secondary" type="reset" className="border border-border bg-red-600">
                 Limpiar
               </Button>
             </div>

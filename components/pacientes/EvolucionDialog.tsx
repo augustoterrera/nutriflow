@@ -215,7 +215,7 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" size="sm" className="border border-white rounded-md m-2 p-3  hover:bg-white/90 hover:text-black scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+        <Button variant="secondary" size="sm" className="border border-border rounded-md m-2 p-3  hover:bg-white/90 hover:text-black scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]">
           Ver gráfico
         </Button>
       </DialogTrigger>
@@ -236,7 +236,7 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
                 onClick={() => setMetrica(m)}
                 className={`transition-all duration-200 ${activo
                     ? "bg-white text-black hover:bg-white/90 scale-105 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    : "bg-transparent text-white border border-white/30 hover:bg-white/10"
+                    : "bg-transparent text-primary-foreground border border-border/30 hover:bg-white/10"
                   }`}
               >
                 {m === "imc" ? "IMC" : m.charAt(0).toUpperCase() + m.slice(1)}

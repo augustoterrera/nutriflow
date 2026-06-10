@@ -10,7 +10,7 @@ export default function NuevoPacientePage() {
         <Link
           href="/dashboard/pacientes"
           style={{ marginLeft: "auto" }}
-          className="bg-slate-800 border-2 rounded-md p-2"
+          className="bg-primary border-2 rounded-md p-2"
         >
           Volver
         </Link>
@@ -29,22 +29,22 @@ export default function NuevoPacientePage() {
         
         <label style={{ display: "grid", gap: 6 }}>
           <span>DNI (obligatorio)</span>
-          <input name="dni" inputMode="numeric" placeholder="Ej: 35123456" required style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="dni" inputMode="numeric" placeholder="Ej: 35123456" required style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Nombre completo (obligatorio)</span>
-          <input name="nombre_completo" placeholder="Ej: Juan Pérez" required style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="nombre_completo" placeholder="Ej: Juan Pérez" required style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Teléfono</span>
-          <input name="telefono" placeholder="Ej: 3815551234" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="telefono" placeholder="Ej: 3815551234" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Sexo</span>
-          <input name="sexo" placeholder="Ej: M o F" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="sexo" placeholder="Ej: M o F" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
@@ -54,28 +54,28 @@ export default function NuevoPacientePage() {
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Email</span>
-          <input name="email" type="email" placeholder="Ej: roberte@gmail.com" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="email" type="email" placeholder="Ej: roberte@gmail.com" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Direccion</span>
-          <input name="direccion" placeholder="Ej: Av. Siempre Viva 123" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="direccion" placeholder="Ej: Av. Siempre Viva 123" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Ocupacion</span>
-          <input name="ocupacion" placeholder="Ej: Profesor" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="ocupacion" placeholder="Ej: Profesor" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Estado civil</span>
-          <input name="estado_civil" placeholder="Ej: Soltero" style={{ padding: 10 }} className="border rounded border-white" />
+          <input name="estado_civil" placeholder="Ej: Soltero" style={{ padding: 10 }} className="border rounded border-border" />
         </label>
 
         {/* NOTAS Y BOTÓN: Generalmente quedan mejor ocupando todo el ancho */}
         <label style={{ display: "grid", gap: 6, gridColumn: "span 2" }}>
           <span>Notas</span>
-          <textarea name="notas" className="border rounded border-white p-2" rows={4}></textarea>
+          <textarea name="notas" className="border rounded border-border p-2" rows={4}></textarea>
         </label>
 
         <div style={{ gridColumn: "span 2", display: "grid", gap: 6 }}>

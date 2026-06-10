@@ -113,7 +113,7 @@ export default function PapeleraPage() {
               <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="bg-slate-600 text-white rounded-md hover:bg-slate-700"
+                  className="bg-slate-600 text-primary-foreground rounded-md hover:bg-primary"
                   style={{ padding: "8px 16px", border: "none", cursor: "pointer" }}
                 >
                   Cancelar
@@ -121,7 +121,7 @@ export default function PapeleraPage() {
                 <button
                   onClick={() => handleBorrar(confirmDelete)}
                   disabled={deleting === confirmDelete}
-                  className="bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  className="bg-red-600 text-primary-foreground rounded-md hover:bg-red-700 disabled:opacity-50"
                   style={{ padding: "8px 16px", border: "none", cursor: "pointer" }}
                 >
                   {deleting === confirmDelete ? "Borrando..." : "Sí, borrar definitivamente"}
@@ -178,7 +178,7 @@ export default function PapeleraPage() {
                 <button
                   onClick={() => handleActivar(paciente.id)}
                   disabled={activating === paciente.id}
-                  className="bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                  className="bg-green-600 text-primary-foreground rounded-md hover:bg-green-700 disabled:opacity-50"
                   style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer" }}
                 >
                   <RotateCcw size={16} />
@@ -191,7 +191,7 @@ export default function PapeleraPage() {
                     setDeletingNombre(paciente.nombre_completo);
                   }}
                   disabled={deleting === paciente.id}
-                  className="bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  className="bg-red-600 text-primary-foreground rounded-md hover:bg-red-700 disabled:opacity-50"
                   style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer" }}
                 >
                   <Trash2 size={16} />

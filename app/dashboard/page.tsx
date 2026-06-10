@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { getDB } from "@/lib/db";
+import { Apple, Calculator, ClipboardList, Users } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,11 @@ export default async function DashboardPage() {
 
   const pacientesRow = await db.get(`select count(*) as total from pacientes where activo = 1`);
   const anamnesisRow = await db.get(`select count(*) as total from anamnesis`);
+  const planesRow = await db.get(`select count(*) as total from planes`);
 
   const totalPacientes = pacientesRow?.total ?? 0;
   const totalAnamnesis = anamnesisRow?.total ?? 0;
+  const totalPlanes = planesRow?.total ?? 0;
 
   const ultimosPacientes = await db.all(
     `select id, dni, nombre_completo
@@ -32,10 +36,10 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button asChild className="bg-slate-800 border-2">
+          <Button asChild className="bg-primary border-2">
             <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
           </Button>
-          <Button variant="secondary" asChild className="bg-slate-800 border-2">
+          <Button variant="secondary" asChild className="bg-primary border-2">
             <Link href="/dashboard/pacientes">Ver pacientes</Link>
           </Button>
         </div>
@@ -73,18 +77,23 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Atajos
+              Planes creados
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/pacientes">Buscar paciente</Link>
-            </Button>
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/pacientes/nuevo">Cargar nuevo paciente</Link>
-            </Button>
+          <CardContent>
+            <div className="text-3xl font-semibold">{totalPlanes}</div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Planes alimentarios guardados
+            </p>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-4">
+        <ToolLink href="/dashboard/pacientes" icon={<Users />} title="Pacientes" />
+        <ToolLink href="/dashboard/pacientes/nuevo" icon={<ClipboardList />} title="Nuevo paciente" />
+        <ToolLink href="/dashboard/calculadora" icon={<Calculator />} title="Calculadora" />
+        <ToolLink href="/dashboard/alimentos" icon={<Apple />} title="Alimentos" />
       </div>
 
       <Card>
@@ -119,5 +128,14 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ToolLink(props: { href: string; icon: ReactNode; title: string }) {
+  return (
+    <Link href={props.href} className="flex items-center gap-3 rounded-md border bg-card p-4 font-medium hover:bg-accent">
+      <span className="[&_svg]:size-5">{props.icon}</span>
+      {props.title}
+    </Link>
   );
 }

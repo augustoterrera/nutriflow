@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-export default function LockPage({ ya }: { ya?: boolean }) {
+export default function LockPage() {
   const [pin, setPin] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [intentos, setIntentos] = useState<number | null>(null);
@@ -48,9 +48,10 @@ export default function LockPage({ ya }: { ya?: boolean }) {
       setBlockedRemaining(null);
       return;
     }
+    const bloqueadoHastaActual = bloqueadoHasta;
 
     function updateRemaining() {
-      const until = new Date(bloqueadoHasta).getTime();
+      const until = new Date(bloqueadoHastaActual).getTime();
       const diff = Math.max(0, until - Date.now());
       const s = Math.ceil(diff / 1000);
       setBlockedRemaining(`${s}s`);
@@ -132,7 +133,7 @@ export default function LockPage({ ya }: { ya?: boolean }) {
               ) : null}
             </div>
 
-            <Button type="submit" className="w-full bg-slate-700 hover:bg-blue-700" disabled={loading}>
+            <Button type="submit" className="w-full bg-primary hover:bg-blue-700" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>

@@ -29,9 +29,7 @@ async function eliminarMedicionAction(formData: FormData) {
 }
 
 export default async function EliminarMedicionPage(props: {
-  params:
-    | Promise<{ id: string; mid: string }>
-    | { id: string; mid: string };
+  params: Promise<{ id: string; mid: string }>;
 }) {
   const { id: idStr, mid: midStr } = await props.params;
 

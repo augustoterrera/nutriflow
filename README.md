@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NutriFlow
 
-## Getting Started
+NutriFlow es una app local para consultorio nutricional. Corre en la PC del usuario con Next.js y guarda los datos en una base SQLite local, por lo que funciona sin internet.
 
-First, run the development server:
+## Arquitectura
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```text
+Navegador -> Next.js local (:3000) -> Server Components / Server Actions -> SQLite
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Framework: Next.js App Router, React, Tailwind y shadcn/ui.
+- Persistencia: `data/tomi_nutri.sqlite`.
+- Migraciones: `db/migrations/*.sql`, aplicadas con `pnpm db:migrate`.
+- Seed de alimentos: `db/seed_alimentos.sql`.
+- No usa ORM, localStorage, IndexedDB ni servicios externos en runtime.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Uso en Windows
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ejecutar `NutriFlow.bat`.
 
-## Learn More
+El script:
 
-To learn more about Next.js, take a look at the following resources:
+1. Instala dependencias si falta `node_modules`.
+2. Ejecuta migraciones y seed.
+3. Genera build de producción si falta `.next/BUILD_ID`.
+4. Abre `http://localhost:3000` y corre `pnpm start`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para forzar un rebuild después de actualizar código, borrar la carpeta `.next` y volver a ejecutar el `.bat`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Desarrollo
 
-## Deploy on Vercel
+```bash
+pnpm install
+pnpm db:migrate
+pnpm run db:seed:alimentos
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Verificaciones:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm test
+pnpm lint
+pnpm build
+```
+
+## Backups
+
+`scripts/init-db.js` crea un backup diario en `data/backups/` con `VACUUM INTO` y conserva los últimos 7. También ejecuta `PRAGMA wal_checkpoint(TRUNCATE)` para reducir riesgo de corrupción si la app se usa desde un disco extraíble.
+
+Para restaurar, cerrar NutriFlow y reemplazar `data/tomi_nutri.sqlite` por el backup elegido.
+
+## Estructura
+
+- `app/`: rutas, Server Components y Server Actions.
+- `components/`: UI reutilizable.
+- `lib/`: acceso a datos y cálculos nutricionales.
+- `db/`: migraciones y seeds SQL.
+- `scripts/`: utilidades de arranque.
+- `public/nutriflow-icon.ico`: ícono local.
+
+## Sync futura
+
+La sincronización SQLite -> PostgreSQL en VPS está planificada como Fase 6 del roadmap, pero no está implementada. La app actual es 100% offline.

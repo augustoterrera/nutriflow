@@ -4,7 +4,7 @@ import { getDB } from "@/lib/db";
 const PAGE_SIZE = 15;
 
 export default async function PacientesPage(props: {
-  searchParams?: Promise<{ q?: string; p?: string }> | { q?: string; p?: string };
+  searchParams?: Promise<{ q?: string; p?: string }>;
 }) {
   const sp = (await props.searchParams) ?? {};
   const q = (sp?.q ?? "").trim();
@@ -98,7 +98,7 @@ export default async function PacientesPage(props: {
                     <Link
                       href={`/dashboard/pacientes/${p.id}/editar`}
                       style={{ padding: "6px 10px", display: "inline-block" }}
-                      className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
+                      className="bg-blue-700 hover:bg-blue-500 text-primary-foreground rounded-md"
                     >
                       Editar
                     </Link>
@@ -106,7 +106,7 @@ export default async function PacientesPage(props: {
                     <Link
                       href={`/dashboard/pacientes/${p.id}/desactivar`}
                       style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                      className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
+                      className="bg-red-600 hover:bg-red-500 text-primary-foreground m-2 rounded-md"
                     >
                       Desactivar
                     </Link>

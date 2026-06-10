@@ -1,4 +1,4 @@
-import { Home, Users, CloudBackup, Trash2 } from "lucide-react"
+import { Apple, Home, Trash2, Users, Zap } from "lucide-react"
 
 import {
   Sidebar,
@@ -25,6 +25,16 @@ const items = [
     title: "Pacientes",
     url: "/dashboard/pacientes",
     icon: Users,
+  },
+  {
+    title: "Calculadora",
+    url: "/dashboard/calculadora",
+    icon: Zap,
+  },
+  {
+    title: "Alimentos",
+    url: "/dashboard/alimentos",
+    icon: Apple,
   },
   {
     title: "Papelera",

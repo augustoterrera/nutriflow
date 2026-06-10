@@ -85,9 +85,7 @@ async function editarAnamnesisAction(formData: FormData) {
 }
 
 export default async function EditarAnamnesisPage(props: {
-  params:
-    | Promise<{ id: string; aid: string }>
-    | { id: string; aid: string };
+  params: Promise<{ id: string; aid: string }>;
 }) {
   const { id: idStr, aid: aidStr } = await props.params;
 

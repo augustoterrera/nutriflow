@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
+import { calcularICC, calcularIMC, edadDesdeFechaNacimiento, pesoIdealLorentz, riesgoICC, tmbMifflin } from "@/lib/calculos";
 import { ImcCard } from "@/components/pacientes/ImcCard";
 import { RiesgoCardiometabolico } from "@/components/pacientes/RiesgoCardiometabolico";
+import { EvolucionDialogLazy } from "@/components/pacientes/EvolucionDialogLazy";
 import {
     TrendingUp,
     TrendingDown,
     Minus,
     Activity
 } from "lucide-react";
-import { EvolucionDialog } from "@/components/pacientes/EvolucionDialog";
 
 export default async function PacientePage(props: {
-    params: Promise<{ id: string }> | { id: string };
+    params: Promise<{ id: string }>;
 }) {
 
     const { id: idStr } = await props.params;
@@ -21,16 +22,18 @@ export default async function PacientePage(props: {
 
     const db = await getDB();
 
-    const [paciente, ultimaAnamnesis, rowCountAnam, mediciones] = await Promise.all([
+    const [paciente, ultimaAnamnesis, rowCountAnam, rowCountPlanes, mediciones] = await Promise.all([
         db.get(`select * from pacientes where id = ? and activo = 1`, [id]),
         db.get(`select * from anamnesis where paciente_id = ? order by date(fecha) desc, id desc limit 1`, [id]),
         db.get(`select count(*) as total from anamnesis where paciente_id = ?`, [id]),
+        db.get(`select count(*) as total from planes where paciente_id = ?`, [id]),
         db.all(`select * from mediciones where paciente_id = ? order by date(fecha) desc, id desc limit 50`, [id])
     ]);
 
     if (!paciente) notFound();
 
     const totalAnamnesis = Number(rowCountAnam?.total ?? 0);
+    const totalPlanes = Number(rowCountPlanes?.total ?? 0);
     const ultimaMedicion = mediciones[0] ?? null;
     const anteriorMedicion = mediciones[1] ?? null;
     const primeraMedicion = mediciones[mediciones.length - 1] ?? null;
@@ -40,6 +43,21 @@ export default async function PacientePage(props: {
     const imc = ultimaMedicion?.peso_kg && alturaRef
         ? calcularIMC(ultimaMedicion.peso_kg, alturaRef)
         : null;
+    const edad = edadDesdeFechaNacimiento(paciente.fecha_nacimiento);
+    const lorentz = alturaRef ? pesoIdealLorentz(paciente.sexo, Number(alturaRef)) : null;
+    const tmb = edad && ultimaMedicion?.peso_kg && alturaRef
+        ? tmbMifflin(paciente.sexo, edad, Number(ultimaMedicion.peso_kg), Number(alturaRef))
+        : null;
+    const icc = ultimaMedicion?.cintura_cm && ultimaMedicion?.cadera_cm
+        ? calcularICC(Number(ultimaMedicion.cintura_cm), Number(ultimaMedicion.cadera_cm))
+        : null;
+    const iccRiesgo = riesgoICC(icc, paciente.sexo);
+    const calcParams = new URLSearchParams();
+    if (edad) calcParams.set("edad", String(edad));
+    if (ultimaMedicion?.peso_kg) calcParams.set("peso", String(ultimaMedicion.peso_kg));
+    if (alturaRef) calcParams.set("talla", String(alturaRef));
+    if (paciente.sexo) calcParams.set("sexo", String(paciente.sexo));
+    const calcHref = `/dashboard/calculadora?${calcParams.toString()}`;
 
     const resumen =
         ultimaMedicion && anteriorMedicion
@@ -58,10 +76,10 @@ export default async function PacientePage(props: {
                 </div>
 
                 <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
-                    <Link href="/dashboard/pacientes" style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
+                    <Link href="/dashboard/pacientes" style={{ padding: 8 }} className="bg-primary border-2 rounded-md">
                         Volver
                     </Link>
-                    <Link href={`/dashboard/pacientes/${id}/anamnesis/nueva`} style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
+                    <Link href={`/dashboard/pacientes/${id}/anamnesis/nueva`} style={{ padding: 8 }} className="bg-primary border-2 rounded-md">
                         Nueva anamnesis
                     </Link>
                 </div>
@@ -140,7 +158,7 @@ export default async function PacientePage(props: {
                         <Link
                             href={`/dashboard/pacientes/${id}/anamnesis/nueva`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-white rounded-md mt-6 mb-5"
+                            className="border border-border rounded-md mt-6 mb-5"
                         >
                             Nueva anamnesis
                         </Link>
@@ -148,9 +166,32 @@ export default async function PacientePage(props: {
                         <Link
                             href={`/dashboard/pacientes/${id}/anamnesis`}
                             style={{ display: "inline-block", padding: 10 }}
-                            className="border border-white rounded-md mt-6 mb-5"
+                            className="border border-border rounded-md mt-6 mb-5"
                         >
                             Ver historial
+                        </Link>
+                    </div>
+                </div>
+
+                <div style={{ border: "1px solid #e5e5e5", borderRadius: 10, padding: 16, marginTop: 12 }}>
+                    <h2 style={{ marginTop: 0 }}>Planes</h2>
+                    <p style={{ marginTop: 8 }}>
+                        Total planes: <b>{totalPlanes}</b>
+                    </p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
+                        <Link
+                            href={`/dashboard/pacientes/${id}/planes`}
+                            style={{ display: "inline-block", padding: 10 }}
+                            className="border border-border rounded-md"
+                        >
+                            Ver planes
+                        </Link>
+                        <Link
+                            href={`/dashboard/pacientes/${id}/planes/nuevo`}
+                            style={{ display: "inline-block", padding: 10 }}
+                            className="border border-border rounded-md"
+                        >
+                            Nuevo plan
                         </Link>
                     </div>
                 </div>
@@ -170,6 +211,14 @@ export default async function PacientePage(props: {
                                 {ultimaMedicion.peso_kg ? <>Peso: {ultimaMedicion.peso_kg} kg · </> : null}
                                 {alturaRef ? <>Altura: {alturaRef} cm</> : null}
                             </div>
+                            <div style={{ opacity: 0.85 }}>
+                                {[
+                                    ultimaMedicion.grasa_pct ? `Grasa: ${ultimaMedicion.grasa_pct}%` : null,
+                                    ultimaMedicion.musculo_pct ? `Músculo: ${ultimaMedicion.musculo_pct}%` : null,
+                                    ultimaMedicion.brazo_cm ? `Brazo: ${ultimaMedicion.brazo_cm} cm` : null,
+                                    ultimaMedicion.muneca_cm ? `Muñeca: ${ultimaMedicion.muneca_cm} cm` : null,
+                                ].filter(Boolean).join(" · ")}
+                            </div>
                             {imc !== null ? (
                                 <ImcCard imc={imc} fecha={ultimaMedicion?.fecha} />
                             ) : (
@@ -182,19 +231,37 @@ export default async function PacientePage(props: {
                                 alturaCm={alturaRef}
                                 imc={imc}
                             />
+                            <div className="grid gap-3 md:grid-cols-2">
+                                {lorentz !== null ? <MiniMetric label="Peso ideal" value={`${lorentz} kg`} note="Fórmula Lorentz" /> : null}
+                                {tmb !== null ? <MiniMetric label="TMB estimada" value={`${tmb} kcal`} note="Mifflin-St Jeor" /> : null}
+                                {icc !== null ? (
+                                    <MiniMetric
+                                        label="ICC"
+                                        value={icc.toFixed(2)}
+                                        note={iccRiesgo.riesgo}
+                                        danger={iccRiesgo.alto}
+                                    />
+                                ) : null}
+                                {edad && ultimaMedicion?.peso_kg && alturaRef ? (
+                                    <Link href={calcHref} className="rounded-md border border-border p-3 font-semibold hover:bg-accent">
+                                        Calcular kcal
+                                        <span className="block text-sm font-normal text-muted-foreground">Precargado con datos actuales</span>
+                                    </Link>
+                                ) : null}
+                            </div>
                         </div>
                     )}
                     <Link
                         href={`/dashboard/pacientes/${id}/mediciones/nueva`}
                         style={{ display: "inline-block", marginTop: 10, padding: 10 }}
-                        className="border border-white rounded-md"
+                        className="border border-border rounded-md"
                     >
                         Nueva medición
                     </Link>
                     <Link
                         href={`/dashboard/pacientes/${id}/mediciones`}
                         style={{ display: "inline-block", marginTop: 10, padding: 10 }}
-                        className="border border-white rounded-md m-2"
+                        className="border border-border rounded-md m-2"
                     >
                         Ver historial de mediciones
                     </Link>
@@ -329,7 +396,7 @@ export default async function PacientePage(props: {
                             </div>
                         </div>
                     )}
-                    <EvolucionDialog mediciones={mediciones} />
+                    <EvolucionDialogLazy mediciones={mediciones} />
                 </div>
             </div>
         </div>
@@ -354,10 +421,14 @@ function labelDieta(v: any) {
     return "Omnívoro";
 }
 
-function calcularIMC(pesoKg: number, alturaCm: number) {
-    const m = alturaCm / 100;
-    if (!m || m === 0) return NaN;
-    return pesoKg / (m * m);
+function MiniMetric({ label, value, note, danger = false }: { label: string; value: string; note: string; danger?: boolean }) {
+    return (
+        <div className="rounded-md border border-border bg-card p-3">
+            <div className="text-sm text-muted-foreground">{label}</div>
+            <div className="text-xl font-semibold">{value}</div>
+            <div className={danger ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>{note}</div>
+        </div>
+    );
 }
 
 function renderRitmo(ultima: any, base: any, desdeInicio = false) {
