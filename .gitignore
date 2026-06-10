@@ -1,0 +1,48 @@
+# Dependencias
+node_modules/
+
+# Build y caches
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables de entorno locales
+.env
+.env.*
+!.env.example
+
+# Base de datos local y backups
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
+data/*.db-*
+data/backups/
+
+# Gestor de paquetes: el proyecto usa pnpm
+package-lock.json
+yarn.lock
+
+# Archivos del sistema / disco externo
+.DS_Store
+Thumbs.db
+System Volume Information/
+
+# Capturas y material suelto local
+Captura de pantalla *.png
+
+# Material pesado de public; se conserva solo el icono de la app
+public/*
+!public/
+!public/nutriflow-icon.ico
+data/
