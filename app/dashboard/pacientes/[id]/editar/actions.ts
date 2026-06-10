@@ -37,8 +37,8 @@ export async function editarPacienteAction(input: EditPacienteInput) {
     throw new Error("Nombre completo es obligatorio.");
   }
 
-  // Validación sexo
-  const sexo = input.sexo?.trim() || null;
+  // Validación sexo (normalizamos a mayúsculas igual que al crear)
+  const sexo = input.sexo?.trim().toUpperCase() || null;
   if (sexo && !["M", "F"].includes(sexo)) {
     throw new Error('Sexo inválido. Usá "M" o "F".');
   }

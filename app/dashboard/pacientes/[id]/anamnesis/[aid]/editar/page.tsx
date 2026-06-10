@@ -2,27 +2,26 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getDB } from "@/lib/db";
 
-function splitToJsonArrayOrNull(input: FormDataEntryValue | null) {
+// Normaliza a CSV plano ("manzana, banana"), el mismo formato que usa "nueva anamnesis".
+// Acepta JSON viejo ('["a","b"]') de registros editados con la versión anterior.
+function toCsvOrNull(input: FormDataEntryValue | null) {
   const raw = String(input ?? "").trim();
   if (!raw) return null;
 
-  // si ya viene JSON, lo dejamos si parsea
+  let parts: string[];
   if (raw.startsWith("[") && raw.endsWith("]")) {
     try {
       const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) return JSON.stringify(arr.map((x) => String(x).trim()).filter(Boolean));
+      parts = Array.isArray(arr) ? arr.map((x) => String(x)) : raw.split(",");
     } catch {
-      // cae al modo CSV
+      parts = raw.split(",");
     }
+  } else {
+    parts = raw.split(",");
   }
 
-  // modo CSV: "manzana, banana"
-  const arr = raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  return arr.length ? JSON.stringify(arr) : null;
+  const limpio = parts.map((s) => s.trim()).filter(Boolean);
+  return limpio.length ? limpio.join(", ") : null;
 }
 
 function toNullText(v: FormDataEntryValue | null) {
@@ -40,10 +39,16 @@ async function editarAnamnesisAction(formData: FormData) {
   const tipoDieta = String(formData.get("tipo_dieta") ?? "").trim();
 
   const consumoAgua = toNullText(formData.get("consumo_agua"));
+  const consumoVerduras = toNullText(formData.get("consumo_verduras"));
+  const consumoFrutas = toNullText(formData.get("consumo_frutas"));
+  const consumoCarnes = toNullText(formData.get("consumo_carnes"));
   const actividadFisica = toNullText(formData.get("actividad_fisica"));
+  const consumeSuplementos = formData.get("consume_suplementos") ? 1 : 0;
+  const suplementosDetalle = toNullText(formData.get("suplementos_detalle"));
+  const observaciones = toNullText(formData.get("observaciones"));
 
-  const frutasNoGusta = splitToJsonArrayOrNull(formData.get("frutas_no_gusta"));
-  const verdurasNoGusta = splitToJsonArrayOrNull(formData.get("verduras_no_gusta"));
+  const frutasNoGusta = toCsvOrNull(formData.get("frutas_no_gusta"));
+  const verdurasNoGusta = toCsvOrNull(formData.get("verduras_no_gusta"));
 
   if (!Number.isFinite(pacienteId) || !Number.isFinite(anamnesisId)) notFound();
   if (!fecha) throw new Error("La fecha es obligatoria.");
@@ -64,18 +69,31 @@ async function editarAnamnesisAction(formData: FormData) {
     `update anamnesis
      set fecha = ?,
          tipo_dieta = ?,
+         consumo_verduras = ?,
+         consumo_frutas = ?,
+         consumo_carnes = ?,
          consumo_agua = ?,
          actividad_fisica = ?,
+         consume_suplementos = ?,
+         suplementos_detalle = ?,
          frutas_no_gusta = ?,
-         verduras_no_gusta = ?
+         verduras_no_gusta = ?,
+         observaciones = ?,
+         actualizado_en = datetime('now')
      where id = ? and paciente_id = ?`,
     [
       fecha,
       dieta,
+      consumoVerduras,
+      consumoFrutas,
+      consumoCarnes,
       consumoAgua,
       actividadFisica,
+      consumeSuplementos,
+      suplementosDetalle,
       frutasNoGusta,
       verdurasNoGusta,
+      observaciones,
       anamnesisId,
       pacienteId,
     ]
@@ -103,7 +121,10 @@ export default async function EditarAnamnesisPage(props: {
   if (!paciente) notFound();
 
   const a = await db.get(
-    `select id, fecha, tipo_dieta, consumo_agua, actividad_fisica, frutas_no_gusta, verduras_no_gusta
+    `select id, fecha, tipo_dieta,
+            consumo_verduras, consumo_frutas, consumo_carnes, consumo_agua,
+            actividad_fisica, consume_suplementos, suplementos_detalle,
+            frutas_no_gusta, verduras_no_gusta, observaciones
      from anamnesis
      where id = ? and paciente_id = ?`,
     [anamnesisId, pacienteId]
@@ -151,6 +172,36 @@ export default async function EditarAnamnesisPage(props: {
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
+          <label style={labelStyle}>Consumo de verduras</label>
+          <input
+            name="consumo_verduras"
+            defaultValue={a.consumo_verduras ?? ""}
+            placeholder="Ej: 2 porciones/día"
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={labelStyle}>Consumo de frutas</label>
+          <input
+            name="consumo_frutas"
+            defaultValue={a.consumo_frutas ?? ""}
+            placeholder="Ej: 1 fruta/día"
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={labelStyle}>Consumo de carnes</label>
+          <input
+            name="consumo_carnes"
+            defaultValue={a.consumo_carnes ?? ""}
+            placeholder="Ej: 4 veces/sem"
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
           <label style={labelStyle}>Consumo de agua</label>
           <input
             name="consumo_agua"
@@ -194,6 +245,36 @@ export default async function EditarAnamnesisPage(props: {
           <div style={{ fontSize: 12, opacity: 0.7 }}>
             Separá por coma. Se guarda como lista.
           </div>
+        </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            name="consume_suplementos"
+            value="1"
+            defaultChecked={Boolean(a.consume_suplementos)}
+          />
+          <span style={labelStyle}>Consume suplementos</span>
+        </label>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={labelStyle}>Detalle de suplementos</label>
+          <input
+            name="suplementos_detalle"
+            defaultValue={a.suplementos_detalle ?? ""}
+            placeholder="Ej: creatina, proteína"
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={labelStyle}>Observaciones</label>
+          <textarea
+            name="observaciones"
+            rows={5}
+            defaultValue={a.observaciones ?? ""}
+            style={inputStyle}
+          />
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>

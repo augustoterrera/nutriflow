@@ -44,7 +44,11 @@ export default function NuevoPacientePage() {
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Sexo</span>
-          <input name="sexo" placeholder="Ej: M o F" style={{ padding: 10 }} className="border rounded border-white" />
+          <select name="sexo" defaultValue="" style={{ padding: 10 }} className="border rounded border-white">
+            <option className="bg-black" value="">Sin especificar</option>
+            <option className="bg-black" value="M">Masculino</option>
+            <option className="bg-black" value="F">Femenino</option>
+          </select>
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>

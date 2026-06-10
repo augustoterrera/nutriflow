@@ -1,19 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { clasificarIMC } from "@/lib/calculos";
 
-type Clasificacion = {
-    label: string;
-    bg: string;
-    text: string;
+const coloresPorClase: Record<string, { bg: string; text: string }> = {
+    ok: { bg: "#f0fdf4", text: "#166534" },
+    warning: { bg: "#fef9c3", text: "#854d0e" },
+    danger: { bg: "#fee2e2", text: "#991b1b" },
+    muted: { bg: "#f5f5f5", text: "#525252" },
 };
-
-function clasificarIMC(imc: number): Clasificacion {
-    if (imc < 18.5) return { label: "Bajo peso", bg: "#fff7ed", text: "#9a3412" };
-    if (imc < 25) return { label: "Normal", bg: "#f0fdf4", text: "#166534" };
-    if (imc < 30) return { label: "Sobrepeso", bg: "#fef9c3", text: "#854d0e" };
-    return { label: "Obesidad", bg: "#fee2e2", text: "#991b1b" };
-}
 
 export function ImcCard({
     imc,
@@ -22,7 +17,11 @@ export function ImcCard({
     imc: number;
     fecha?: string | null;
 }) {
-    const clasificacion = useMemo(() => clasificarIMC(imc), [imc]);
+    const clasificacion = useMemo(() => {
+        const { categoria, claseCss } = clasificarIMC(imc);
+        const colores = coloresPorClase[claseCss] ?? coloresPorClase.muted;
+        return { label: categoria, ...colores };
+    }, [imc]);
 
     // “flash” corto cuando cambia IMC (o sea, cambió la última medición)
     const [flash, setFlash] = useState(false);

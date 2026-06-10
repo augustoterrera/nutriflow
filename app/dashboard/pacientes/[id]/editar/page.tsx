@@ -127,7 +127,11 @@ export default function EditarPacientePage() {
 
         <label style={{ display: "grid", gap: 6 }}>
           <span>Sexo</span>
-          <input name="sexo" defaultValue={p.sexo ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
+          <select name="sexo" defaultValue={(p.sexo ?? "").toUpperCase()} style={{ padding: 10 }} className="border border-white rounded-md">
+            <option className="bg-black" value="">Sin especificar</option>
+            <option className="bg-black" value="M">Masculino</option>
+            <option className="bg-black" value="F">Femenino</option>
+          </select>
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>

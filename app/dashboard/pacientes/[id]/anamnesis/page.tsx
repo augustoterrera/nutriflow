@@ -38,8 +38,10 @@ export default async function AnamnesisHistorialPage(props: {
   const offset = (safePage - 1) * PAGE_SIZE;
 
   const anamnesis = await db.all(
-    `select id, fecha, tipo_dieta, consumo_agua, actividad_fisica,
-            frutas_no_gusta, verduras_no_gusta
+    `select id, fecha, tipo_dieta,
+            consumo_verduras, consumo_frutas, consumo_carnes, consumo_agua,
+            actividad_fisica, consume_suplementos, suplementos_detalle,
+            frutas_no_gusta, verduras_no_gusta, observaciones
      from anamnesis
      where paciente_id = ?
      order by date(fecha) desc, id desc
@@ -88,9 +90,11 @@ export default async function AnamnesisHistorialPage(props: {
               <tr style={{ opacity: 0.85, textAlign: "left" }}>
                 <th style={thStyle}>Fecha</th>
                 <th style={thStyle}>Dieta</th>
-                <th style={thStyle}>Agua</th>
+                <th style={thStyle}>Consumos</th>
                 <th style={thStyle}>Actividad física</th>
+                <th style={thStyle}>Suplementos</th>
                 <th style={thStyle}>Preferencias</th>
+                <th style={thStyle}>Obs.</th>
                 <th style={{ ...thStyle, textAlign: "right" }}>Acciones</th>
               </tr>
             </thead>
@@ -104,13 +108,24 @@ export default async function AnamnesisHistorialPage(props: {
                   .filter(Boolean)
                   .join(" · ");
 
+                const consumos = [
+                  a.consumo_verduras ? `Verd: ${a.consumo_verduras}` : null,
+                  a.consumo_frutas ? `Frutas: ${a.consumo_frutas}` : null,
+                  a.consumo_carnes ? `Carnes: ${a.consumo_carnes}` : null,
+                  a.consumo_agua ? `Agua: ${a.consumo_agua}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+
                 return (
                   <tr key={a.id} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                     <td style={tdStyle}>{a.fecha}</td>
                     <td style={tdStyle}>{labelDieta(a.tipo_dieta)}</td>
-                    <td style={tdStyle}>{a.consumo_agua ?? "-"}</td>
+                    <td style={tdStyle}>{consumos || "-"}</td>
                     <td style={tdStyle}>{a.actividad_fisica ?? "-"}</td>
+                    <td style={tdStyle}>{a.consume_suplementos ? (a.suplementos_detalle || "Sí") : "-"}</td>
                     <td style={tdStyle}>{pref || "-"}</td>
+                    <td style={tdStyle}>{a.observaciones ?? "-"}</td>
 
                     <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
                       <Link

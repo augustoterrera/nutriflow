@@ -46,7 +46,10 @@ export default async function EliminarAnamnesisPage(props: {
   if (!paciente) notFound();
 
   const a = await db.get(
-    `select id, fecha, tipo_dieta, consumo_agua, actividad_fisica, frutas_no_gusta, verduras_no_gusta
+    `select id, fecha, tipo_dieta,
+            consumo_verduras, consumo_frutas, consumo_carnes, consumo_agua,
+            actividad_fisica, consume_suplementos, suplementos_detalle,
+            frutas_no_gusta, verduras_no_gusta, observaciones
      from anamnesis
      where id = ? and paciente_id = ?`,
     [anamnesisId, pacienteId]
@@ -81,15 +84,27 @@ export default async function EliminarAnamnesisPage(props: {
           <div>
             <b>Agua:</b> {a.consumo_agua ?? "-"}
           </div>
+          {a.consumo_verduras ? <div><b>Verduras:</b> {a.consumo_verduras}</div> : null}
+          {a.consumo_frutas ? <div><b>Frutas:</b> {a.consumo_frutas}</div> : null}
+          {a.consumo_carnes ? <div><b>Carnes:</b> {a.consumo_carnes}</div> : null}
           <div>
             <b>Actividad física:</b> {a.actividad_fisica ?? "-"}
           </div>
+          {a.consume_suplementos ? (
+            <div><b>Suplementos:</b> {a.suplementos_detalle || "sí"}</div>
+          ) : null}
 
           {(a.frutas_no_gusta || a.verduras_no_gusta) ? (
             <div style={{ marginTop: 6, opacity: 0.9 }}>
               <b>Preferencias:</b>{" "}
               {a.frutas_no_gusta ? <>Frutas: {compact(a.frutas_no_gusta)}. </> : null}
               {a.verduras_no_gusta ? <>Verduras: {compact(a.verduras_no_gusta)}.</> : null}
+            </div>
+          ) : null}
+
+          {a.observaciones ? (
+            <div style={{ marginTop: 6, opacity: 0.9 }}>
+              <b>Observaciones:</b> {a.observaciones}
             </div>
           ) : null}
         </div>

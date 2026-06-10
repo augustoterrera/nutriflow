@@ -81,7 +81,7 @@ export async function borrarPacienteDefinitivamenteAction(pacienteId: number) {
       throw new Error("Paciente no encontrado.");
     }
 
-    // Al borrar, también se borran anamnesis y mediciones por FOREIGN KEY CASCADE
+    // Al borrar, también se borran anamnesis, mediciones y planes por FOREIGN KEY CASCADE
     await db.run("DELETE FROM pacientes WHERE id = ?", [pacienteId]);
 
     return { success: true };

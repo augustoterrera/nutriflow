@@ -109,6 +109,7 @@ export function PapeleraClient() {
                 <li>El paciente completamente</li>
                 <li>Todas sus anamnesis</li>
                 <li>Todas sus mediciones</li>
+                <li>Todos sus planes alimentarios</li>
               </ul>
               <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
                 <button

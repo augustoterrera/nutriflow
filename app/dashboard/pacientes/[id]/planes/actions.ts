@@ -16,7 +16,7 @@ export async function guardarPlanAction(pacienteId: number, planId: number | nul
 
 export async function eliminarPlanAction(pacienteId: number, formData: FormData) {
   const planId = Number(formData.get("plan_id"));
-  await eliminarPlan(planId);
+  await eliminarPlan(planId, pacienteId);
 
   revalidatePath(`/dashboard/pacientes/${pacienteId}/planes`);
   redirect(`/dashboard/pacientes/${pacienteId}/planes`);

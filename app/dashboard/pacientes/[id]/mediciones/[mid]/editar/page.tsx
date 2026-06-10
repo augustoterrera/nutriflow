@@ -25,9 +25,18 @@ async function editarMedicionAction(formData: FormData) {
   const musculoPct = toNullNumber(formData.get("musculo_pct"));
   const brazoCm = toNullNumber(formData.get("brazo_cm"));
   const munecaCm = toNullNumber(formData.get("muneca_cm"));
+  const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
 
   if (!Number.isFinite(pacienteId) || !Number.isFinite(medicionId)) notFound();
   if (!fecha) throw new Error("La fecha es obligatoria.");
+
+  // Mismas validaciones que al crear la medición
+  if (pesoKg !== null && (pesoKg <= 0 || pesoKg > 500)) {
+    throw new Error("Peso inválido.");
+  }
+  if (alturaCm !== null && (alturaCm <= 0 || alturaCm > 250)) {
+    throw new Error("Altura inválida.");
+  }
 
   const db = await getDB();
 
@@ -42,9 +51,9 @@ async function editarMedicionAction(formData: FormData) {
     `update mediciones
      set fecha = ?, peso_kg = ?, altura_cm = ?, cintura_cm = ?,
          cadera_cm = ?, cuello_cm = ?, grasa_pct = ?, musculo_pct = ?,
-         brazo_cm = ?, muneca_cm = ?, actualizado_en = datetime('now')
+         brazo_cm = ?, muneca_cm = ?, observaciones = ?, actualizado_en = datetime('now')
      where id = ? and paciente_id = ?`,
-    [fecha, pesoKg, alturaCm, cinturaCm, caderaCm, cuelloCm, grasaPct, musculoPct, brazoCm, munecaCm, medicionId, pacienteId]
+    [fecha, pesoKg, alturaCm, cinturaCm, caderaCm, cuelloCm, grasaPct, musculoPct, brazoCm, munecaCm, observaciones, medicionId, pacienteId]
   );
 
   redirect(`/dashboard/pacientes/${pacienteId}/mediciones`);
@@ -70,7 +79,7 @@ export default async function EditarMedicionPage(props: {
 
   const medicion = await db.get(
     `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm,
-            grasa_pct, musculo_pct, brazo_cm, muneca_cm
+            grasa_pct, musculo_pct, brazo_cm, muneca_cm, observaciones
      from mediciones
      where id = ? and paciente_id = ?`,
     [medicionId, pacienteId]
@@ -170,6 +179,17 @@ export default async function EditarMedicionPage(props: {
             <label style={{ opacity: 0.8, fontSize: 13 }}>Muñeca (cm)</label>
             <input name="muneca_cm" inputMode="decimal" defaultValue={medicion.muneca_cm ?? ""} placeholder="Ej: 16" style={inputStyle} />
           </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ opacity: 0.8, fontSize: 13 }}>Observaciones</label>
+          <textarea
+            name="observaciones"
+            rows={4}
+            defaultValue={medicion.observaciones ?? ""}
+            placeholder="Notas de la medición..."
+            style={inputStyle}
+          />
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>

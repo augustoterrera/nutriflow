@@ -21,8 +21,17 @@ export async function crearAnamnesisAction(
     String(formData.get("verduras_no_gusta") ?? "").trim() || null;
   const consumo_agua =
     String(formData.get("consumo_agua") ?? "").trim() || null;
+  const consumo_verduras =
+    String(formData.get("consumo_verduras") ?? "").trim() || null;
+  const consumo_frutas =
+    String(formData.get("consumo_frutas") ?? "").trim() || null;
+  const consumo_carnes =
+    String(formData.get("consumo_carnes") ?? "").trim() || null;
   const actividad_fisica =
     String(formData.get("actividad_fisica") ?? "").trim() || null;
+  const consume_suplementos = formData.get("consume_suplementos") ? 1 : 0;
+  const suplementos_detalle =
+    String(formData.get("suplementos_detalle") ?? "").trim() || null;
   const observaciones =
     String(formData.get("observaciones") ?? "").trim() || null;
 
@@ -37,13 +46,17 @@ export async function crearAnamnesisAction(
       paciente_id, fecha,
       tipo_dieta,
       frutas_no_gusta, verduras_no_gusta,
+      consumo_verduras, consumo_frutas, consumo_carnes,
       consumo_agua, actividad_fisica,
-      observaciones
+      consume_suplementos, suplementos_detalle,
+      observaciones, actualizado_en
     ) values (
       ?, coalesce(?, date('now')),
       ?, ?, ?,
+      ?, ?, ?,
       ?, ?,
-      ?
+      ?, ?,
+      ?, datetime('now')
     )`,
     [
       pacienteId,
@@ -51,8 +64,13 @@ export async function crearAnamnesisAction(
       tipo_dieta,
       frutas_no_gusta,
       verduras_no_gusta,
+      consumo_verduras,
+      consumo_frutas,
+      consumo_carnes,
       consumo_agua,
       actividad_fisica,
+      consume_suplementos,
+      suplementos_detalle,
       observaciones,
     ]
   );

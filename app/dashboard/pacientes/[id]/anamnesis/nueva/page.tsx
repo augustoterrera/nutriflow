@@ -78,6 +78,21 @@ export default async function NuevaAnamnesisPage(props: {
                 </label>
 
                 <label style={{ display: "grid", gap: 6 }}>
+                    <span>Consumo de verduras</span>
+                    <input className="border border-white rounded-md w-60" name="consumo_verduras" placeholder="Ej: 2 porciones/día" style={{ padding: 10 }} />
+                </label>
+
+                <label style={{ display: "grid", gap: 6 }}>
+                    <span>Consumo de frutas</span>
+                    <input className="border border-white rounded-md w-60" name="consumo_frutas" placeholder="Ej: 1 fruta/día" style={{ padding: 10 }} />
+                </label>
+
+                <label style={{ display: "grid", gap: 6 }}>
+                    <span>Consumo de carnes</span>
+                    <input className="border border-white rounded-md w-60" name="consumo_carnes" placeholder="Ej: 4 veces/sem" style={{ padding: 10 }} />
+                </label>
+
+                <label style={{ display: "grid", gap: 6 }}>
                     <span>Agua</span>
                     <input className="border border-white rounded-md w-60" name="consumo_agua" placeholder="Ej: 2L/día" style={{ padding: 10 }} />
                 </label>
@@ -89,6 +104,21 @@ export default async function NuevaAnamnesisPage(props: {
                         placeholder="Ej: camina 3x/sem"
                         style={{ padding: 10 }}
                         className="border border-white rounded-md w-60"
+                    />
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input type="checkbox" name="consume_suplementos" value="1" />
+                    <span>Consume suplementos</span>
+                </label>
+
+                <label style={{ display: "grid", gap: 6 }}>
+                    <span>Detalle de suplementos</span>
+                    <input
+                        name="suplementos_detalle"
+                        placeholder="Ej: creatina, proteína"
+                        style={{ padding: 10 }}
+                        className="border border-white rounded-md"
                     />
                 </label>
 

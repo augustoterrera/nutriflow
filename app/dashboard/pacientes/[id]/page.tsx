@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
-import { calcularICC, edadDesdeFechaNacimiento, pesoIdealLorentz, riesgoICC, tmbMifflin } from "@/lib/calculos";
+import { calcularICC, calcularIMC, edadDesdeFechaNacimiento, pesoIdealLorentz, riesgoICC, tmbMifflin } from "@/lib/calculos";
 import { ImcCard } from "@/components/pacientes/ImcCard";
 import { RiesgoCardiometabolico } from "@/components/pacientes/RiesgoCardiometabolico";
 import {
@@ -27,7 +27,7 @@ export default async function PacientePage(props: {
         db.get(`select * from anamnesis where paciente_id = ? order by date(fecha) desc, id desc limit 1`, [id]),
         db.get(`select count(*) as total from anamnesis where paciente_id = ?`, [id]),
         db.get(`select count(*) as total from planes where paciente_id = ?`, [id]),
-        db.all(`select * from mediciones where paciente_id = ? order by date(fecha) desc, id desc limit 50`, [id])
+        db.all(`select * from mediciones where paciente_id = ? order by date(fecha) desc, id desc`, [id])
     ]);
 
     if (!paciente) notFound();
@@ -44,14 +44,19 @@ export default async function PacientePage(props: {
         ? calcularIMC(ultimaMedicion.peso_kg, alturaRef)
         : null;
     const edad = edadDesdeFechaNacimiento(paciente.fecha_nacimiento);
-    const lorentz = alturaRef ? pesoIdealLorentz(paciente.sexo, Number(alturaRef)) : null;
-    const tmb = edad && ultimaMedicion?.peso_kg && alturaRef
+    // Lorentz, TMB y riesgo ICC dependen del sexo: sin sexo cargado no se estiman
+    const sexoNorm = String(paciente.sexo ?? "").trim().toUpperCase();
+    const tieneSexo = sexoNorm === "M" || sexoNorm === "F";
+    const lorentz = tieneSexo && alturaRef ? pesoIdealLorentz(paciente.sexo, Number(alturaRef)) : null;
+    const tmb = tieneSexo && edad && ultimaMedicion?.peso_kg && alturaRef
         ? tmbMifflin(paciente.sexo, edad, Number(ultimaMedicion.peso_kg), Number(alturaRef))
         : null;
     const icc = ultimaMedicion?.cintura_cm && ultimaMedicion?.cadera_cm
         ? calcularICC(Number(ultimaMedicion.cintura_cm), Number(ultimaMedicion.cadera_cm))
         : null;
-    const iccRiesgo = riesgoICC(icc, paciente.sexo);
+    const iccRiesgo = tieneSexo
+        ? riesgoICC(icc, paciente.sexo)
+        : { riesgo: "Cargá sexo para estimar riesgo", alto: false };
     const calcParams = new URLSearchParams();
     if (edad) calcParams.set("edad", String(edad));
     if (ultimaMedicion?.peso_kg) calcParams.set("peso", String(ultimaMedicion.peso_kg));
@@ -104,7 +109,11 @@ export default async function PacientePage(props: {
                         <Field label="Email" value={paciente.email} />
                         <Field label="Dirección" value={paciente.direccion} />
                         <Field label="Fecha nacimiento" value={paciente.fecha_nacimiento} />
+                        <Field label="Edad" value={edad !== null ? `${edad} años` : null} />
                         <Field label="Sexo" value={paciente.sexo} />
+                        <Field label="Estado civil" value={paciente.estado_civil} />
+                        <Field label="Ocupación" value={paciente.ocupacion} />
+                        <Field label="Notas" value={paciente.notas} />
                     </div>
                 </div>
 
@@ -140,6 +149,22 @@ export default async function PacientePage(props: {
                                 {!ultimaAnamnesis.consumo_agua && !ultimaAnamnesis.actividad_fisica ? <>Sin datos extra</> : null}
                             </div>
 
+                            {(ultimaAnamnesis.consumo_verduras || ultimaAnamnesis.consumo_frutas || ultimaAnamnesis.consumo_carnes) ? (
+                                <div style={{ opacity: 0.85 }}>
+                                    {[
+                                        ultimaAnamnesis.consumo_verduras ? `Verduras: ${ultimaAnamnesis.consumo_verduras}` : null,
+                                        ultimaAnamnesis.consumo_frutas ? `Frutas: ${ultimaAnamnesis.consumo_frutas}` : null,
+                                        ultimaAnamnesis.consumo_carnes ? `Carnes: ${ultimaAnamnesis.consumo_carnes}` : null,
+                                    ].filter(Boolean).join(" · ")}
+                                </div>
+                            ) : null}
+
+                            {ultimaAnamnesis.consume_suplementos ? (
+                                <div style={{ opacity: 0.85 }}>
+                                    Suplementos: {ultimaAnamnesis.suplementos_detalle || "sí"}
+                                </div>
+                            ) : null}
+
                             {(ultimaAnamnesis.frutas_no_gusta || ultimaAnamnesis.verduras_no_gusta) ? (
                                 <div style={{ opacity: 0.75 }}>
                                     {ultimaAnamnesis.frutas_no_gusta ? (
@@ -148,6 +173,12 @@ export default async function PacientePage(props: {
                                     {ultimaAnamnesis.verduras_no_gusta ? (
                                         <>No le gustan verduras: {compact(ultimaAnamnesis.verduras_no_gusta)}.</>
                                     ) : null}
+                                </div>
+                            ) : null}
+
+                            {ultimaAnamnesis.observaciones ? (
+                                <div style={{ opacity: 0.75 }}>
+                                    Obs: {ultimaAnamnesis.observaciones}
                                 </div>
                             ) : null}
 
@@ -213,12 +244,18 @@ export default async function PacientePage(props: {
                             </div>
                             <div style={{ opacity: 0.85 }}>
                                 {[
+                                    ultimaMedicion.cintura_cm ? `Cintura: ${ultimaMedicion.cintura_cm} cm` : null,
+                                    ultimaMedicion.cadera_cm ? `Cadera: ${ultimaMedicion.cadera_cm} cm` : null,
+                                    ultimaMedicion.cuello_cm ? `Cuello: ${ultimaMedicion.cuello_cm} cm` : null,
                                     ultimaMedicion.grasa_pct ? `Grasa: ${ultimaMedicion.grasa_pct}%` : null,
                                     ultimaMedicion.musculo_pct ? `Músculo: ${ultimaMedicion.musculo_pct}%` : null,
                                     ultimaMedicion.brazo_cm ? `Brazo: ${ultimaMedicion.brazo_cm} cm` : null,
                                     ultimaMedicion.muneca_cm ? `Muñeca: ${ultimaMedicion.muneca_cm} cm` : null,
                                 ].filter(Boolean).join(" · ")}
                             </div>
+                            {ultimaMedicion.observaciones ? (
+                                <div style={{ opacity: 0.75 }}>Obs: {ultimaMedicion.observaciones}</div>
+                            ) : null}
                             {imc !== null ? (
                                 <ImcCard imc={imc} fecha={ultimaMedicion?.fecha} />
                             ) : (
@@ -345,7 +382,7 @@ export default async function PacientePage(props: {
                                         <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
                                             {renderDelta("Peso", "kg", ultimaMedicion.peso_kg, anteriorMedicion.peso_kg)}
                                             {renderDelta("Cintura", "cm", ultimaMedicion.cintura_cm, anteriorMedicion.cintura_cm)}
-                                            {renderDeltaIMC(ultimaMedicion, anteriorMedicion)}
+                                            {renderDeltaIMC(ultimaMedicion, anteriorMedicion, alturaRef)}
                                         </div>
 
                                         <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
@@ -381,7 +418,7 @@ export default async function PacientePage(props: {
                                         <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
                                             {renderDelta("Peso", "kg", ultimaMedicion.peso_kg, primeraMedicion.peso_kg)}
                                             {renderDelta("Cintura", "cm", ultimaMedicion.cintura_cm, primeraMedicion.cintura_cm)}
-                                            {renderDeltaIMC(ultimaMedicion, primeraMedicion)}
+                                            {renderDeltaIMC(ultimaMedicion, primeraMedicion, alturaRef)}
                                         </div>
 
                                         <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
@@ -431,12 +468,6 @@ function MiniMetric({ label, value, note, danger = false }: { label: string; val
     );
 }
 
-function calcularIMC(pesoKg: number, alturaCm: number) {
-    const m = alturaCm / 100;
-    if (!m || m === 0) return NaN;
-    return pesoKg / (m * m);
-}
-
 function renderRitmo(ultima: any, base: any, desdeInicio = false) {
     const d = diasEntre(ultima?.fecha, base?.fecha);
     if (!d || d < 4) return "Ritmo: (datos insuficientes)";
@@ -462,6 +493,19 @@ function resumenTendencia(ultima: any, anterior: any) {
 
     if (!pesoOk && !cinturaOk) {
         return { titulo: "Sin datos", detalle: "Cargá mediciones.", icon: <Minus size={18} /> };
+    }
+
+    // Si falta una de las dos métricas, evaluamos solo con la disponible
+    if (!pesoOk || !cinturaOk) {
+        const d = pesoOk ? dp : dc;
+        const nombre = pesoOk ? "Peso" : "Cintura";
+        if (d < 0) {
+            return { titulo: "Tendencia: Mejorando", detalle: `${nombre} en descenso (sin datos de ${pesoOk ? "cintura" : "peso"}).`, icon: <TrendingDown size={18} color="#22c55e" /> };
+        }
+        if (d > 0) {
+            return { titulo: "Tendencia: Alerta", detalle: `${nombre} en aumento (sin datos de ${pesoOk ? "cintura" : "peso"}).`, icon: <TrendingUp size={18} color="#ef4444" /> };
+        }
+        return { titulo: "Tendencia: Estable", detalle: `${nombre} sin cambios.`, icon: <Minus size={18} /> };
     }
 
     if (dc <= -1 && dp >= -0.3 && dp <= 0.5) {
@@ -504,9 +548,14 @@ function renderDelta(label: string, unidad: string, actual: any, previo: any) {
     );
 }
 
-function renderDeltaIMC(actual: any, previo: any) {
-    const imcA = calcularIMC(actual.peso_kg, actual.altura_cm || 1);
-    const imcP = calcularIMC(previo.peso_kg, previo.altura_cm || 1);
+function renderDeltaIMC(actual: any, previo: any, alturaRef: number | null) {
+    // Sin altura propia usamos la de referencia; si tampoco hay, no se muestra el delta
+    const alturaA = actual.altura_cm || alturaRef;
+    const alturaP = previo.altura_cm || alturaRef;
+    if (!alturaA || !alturaP || !actual.peso_kg || !previo.peso_kg) return null;
+
+    const imcA = calcularIMC(actual.peso_kg, alturaA);
+    const imcP = calcularIMC(previo.peso_kg, alturaP);
 
     if (isNaN(imcA) || isNaN(imcP)) return null;
 
@@ -534,9 +583,15 @@ function diasEntre(a: any, b: any) {
     return Math.abs(da.getTime() - db.getTime()) / (1000 * 60 * 60 * 24);
 }
 
-// SOLUCIÓN AL ERROR: Definición de la función compact
+// Muestra listas guardadas como CSV ("a, b") o como JSON viejo ('["a","b"]')
 function compact(text: string | null) {
     if (!text) return "";
-    // Elimina espacios extra y comas al final/principio
-    return text.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+    const s = String(text).trim();
+    if (s.startsWith("[") && s.endsWith("]")) {
+        try {
+            const arr = JSON.parse(s);
+            if (Array.isArray(arr)) return arr.map((x) => String(x).trim()).filter(Boolean).join(", ");
+        } catch { }
+    }
+    return s.split(',').map(p => p.trim()).filter(Boolean).join(', ');
 }

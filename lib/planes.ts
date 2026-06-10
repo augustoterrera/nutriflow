@@ -145,7 +145,12 @@ export async function guardarPlan(pacienteId: number, datos: PlanInput) {
   }
 }
 
-export async function eliminarPlan(planId: number) {
+export async function eliminarPlan(planId: number, pacienteId: number) {
   const db = await getDB();
-  await db.run(`delete from planes where id = ?`, [planId]);
+  const existe = await db.get(
+    `select id from planes where id = ? and paciente_id = ?`,
+    [planId, pacienteId]
+  );
+  if (!existe) throw new Error("Plan no encontrado.");
+  await db.run(`delete from planes where id = ? and paciente_id = ?`, [planId, pacienteId]);
 }

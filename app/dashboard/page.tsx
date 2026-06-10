@@ -10,8 +10,18 @@ export default async function DashboardPage() {
   const db = await getDB();
 
   const pacientesRow = await db.get(`select count(*) as total from pacientes where activo = 1`);
-  const anamnesisRow = await db.get(`select count(*) as total from anamnesis`);
-  const planesRow = await db.get(`select count(*) as total from planes`);
+  const anamnesisRow = await db.get(
+    `select count(*) as total
+     from anamnesis a
+     join pacientes p on p.id = a.paciente_id
+     where p.activo = 1`
+  );
+  const planesRow = await db.get(
+    `select count(*) as total
+     from planes pl
+     join pacientes p on p.id = pl.paciente_id
+     where p.activo = 1`
+  );
 
   const totalPacientes = pacientesRow?.total ?? 0;
   const totalAnamnesis = anamnesisRow?.total ?? 0;

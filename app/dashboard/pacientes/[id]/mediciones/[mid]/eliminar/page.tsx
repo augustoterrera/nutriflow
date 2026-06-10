@@ -47,7 +47,8 @@ export default async function EliminarMedicionPage(props: {
   if (!paciente) notFound();
 
   const medicion = await db.get(
-    `select id, fecha, peso_kg, altura_cm, cintura_cm
+    `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm,
+            grasa_pct, musculo_pct, brazo_cm, muneca_cm, observaciones
      from mediciones
      where id = ? and paciente_id = ?`,
     [medicionId, pacienteId]
@@ -84,6 +85,13 @@ export default async function EliminarMedicionPage(props: {
           <div>
             <b>Cintura:</b> {medicion.cintura_cm ?? "-"} cm
           </div>
+          {medicion.cadera_cm ? <div><b>Cadera:</b> {medicion.cadera_cm} cm</div> : null}
+          {medicion.cuello_cm ? <div><b>Cuello:</b> {medicion.cuello_cm} cm</div> : null}
+          {medicion.grasa_pct ? <div><b>Grasa:</b> {medicion.grasa_pct}%</div> : null}
+          {medicion.musculo_pct ? <div><b>Músculo:</b> {medicion.musculo_pct}%</div> : null}
+          {medicion.brazo_cm ? <div><b>Brazo:</b> {medicion.brazo_cm} cm</div> : null}
+          {medicion.muneca_cm ? <div><b>Muñeca:</b> {medicion.muneca_cm} cm</div> : null}
+          {medicion.observaciones ? <div><b>Observaciones:</b> {medicion.observaciones}</div> : null}
         </div>
 
         <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>

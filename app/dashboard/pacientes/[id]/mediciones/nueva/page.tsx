@@ -55,13 +55,13 @@ async function crearMedicionAction(pacienteId: number, formData: FormData) {
       peso_kg, altura_cm,
       cintura_cm, cadera_cm, cuello_cm,
       grasa_pct, musculo_pct, brazo_cm, muneca_cm,
-      observaciones
+      observaciones, actualizado_en
     ) values (
       ?, coalesce(?, date('now')),
       ?, ?,
       ?, ?, ?,
       ?, ?, ?, ?,
-      ?
+      ?, datetime('now')
     )`,
     [
       pacienteId,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
+import { calcularIMC } from "@/lib/calculos";
 
 const PAGE_SIZE = 15;
 
@@ -41,14 +42,24 @@ export default async function MedicionesHistorialPage(props: {
   const safeOffset = (safePage - 1) * PAGE_SIZE;
 
   const mediciones = await db.all(
-    `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm,
-            grasa_pct, musculo_pct, brazo_cm, muneca_cm
+    `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm,
+            grasa_pct, musculo_pct, brazo_cm, muneca_cm, observaciones
      from mediciones
      where paciente_id = ?
      order by date(fecha) desc, id desc
      limit ? offset ?`,
     [id, PAGE_SIZE, safeOffset]
   );
+
+  // Misma regla que la ficha: si la fila no tiene altura, usamos la última conocida
+  const alturaRefRow = await db.get(
+    `select altura_cm from mediciones
+     where paciente_id = ? and altura_cm is not null
+     order by date(fecha) desc, id desc
+     limit 1`,
+    [id]
+  );
+  const alturaRef = alturaRefRow?.altura_cm ?? null;
 
   return (
     <div style={{ padding: 24 }}>
@@ -88,6 +99,7 @@ export default async function MedicionesHistorialPage(props: {
               <th style={thStyle}>Peso</th>
               <th style={thStyle}>Altura</th>
               <th style={thStyle}>Cintura</th>
+              <th style={thStyle}>Cadera</th>
               <th style={thStyle}>IMC</th>
               <th style={thStyle}>WHtR</th>
               <th style={thStyle}>Extra</th>
@@ -98,20 +110,22 @@ export default async function MedicionesHistorialPage(props: {
           <tbody>
             {mediciones.length === 0 ? (
               <tr>
-                <td style={tdStyle} colSpan={8}>
+                <td style={tdStyle} colSpan={9}>
                   No hay mediciones cargadas.
                 </td>
               </tr>
             ) : (
               mediciones.map((m: any) => {
+                const altura = m?.altura_cm || alturaRef;
+
                 const imc =
-                  m?.peso_kg && m?.altura_cm
-                    ? calcularIMC(Number(m.peso_kg), Number(m.altura_cm))
+                  m?.peso_kg && altura
+                    ? calcularIMC(Number(m.peso_kg), Number(altura))
                     : null;
 
                 const whtr =
-                  m?.cintura_cm && m?.altura_cm
-                    ? Number(m.cintura_cm) / Number(m.altura_cm)
+                  m?.cintura_cm && altura
+                    ? Number(m.cintura_cm) / Number(altura)
                     : null;
 
                 return (
@@ -120,14 +134,17 @@ export default async function MedicionesHistorialPage(props: {
                     <td style={tdStyle}>{m.peso_kg ? `${Number(m.peso_kg).toFixed(1)} kg` : "-"}</td>
                     <td style={tdStyle}>{m.altura_cm ? `${Number(m.altura_cm).toFixed(0)} cm` : "-"}</td>
                     <td style={tdStyle}>{m.cintura_cm ? `${Number(m.cintura_cm).toFixed(1)} cm` : "-"}</td>
+                    <td style={tdStyle}>{m.cadera_cm ? `${Number(m.cadera_cm).toFixed(1)} cm` : "-"}</td>
                     <td style={tdStyle}>{imc !== null ? imc.toFixed(1) : "-"}</td>
                     <td style={tdStyle}>{whtr !== null ? whtr.toFixed(2) : "-"}</td>
                     <td style={tdStyle}>
                       {[
+                        m.cuello_cm ? `Cuello ${Number(m.cuello_cm).toFixed(1)} cm` : null,
                         m.grasa_pct ? `Grasa ${Number(m.grasa_pct).toFixed(1)}%` : null,
                         m.musculo_pct ? `Músculo ${Number(m.musculo_pct).toFixed(1)}%` : null,
                         m.brazo_cm ? `Brazo ${Number(m.brazo_cm).toFixed(1)} cm` : null,
                         m.muneca_cm ? `Muñeca ${Number(m.muneca_cm).toFixed(1)} cm` : null,
+                        m.observaciones ? `Obs: ${m.observaciones}` : null,
                       ].filter(Boolean).join(" · ") || "-"}
                     </td>
 
@@ -180,12 +197,6 @@ export default async function MedicionesHistorialPage(props: {
       </div>
     </div>
   );
-}
-
-function calcularIMC(pesoKg: number, alturaCm: number) {
-  const m = alturaCm / 100;
-  if (!m) return NaN;
-  return pesoKg / (m * m);
 }
 
 const thStyle: React.CSSProperties = {
