@@ -28,15 +28,15 @@ describe("calculos nutricionales", () => {
   });
 
   it("calcula TMB Mifflin y Harris", () => {
-    expect(tmbMifflin("M", 30, 70, 165)).toBe(1486);
+    expect(tmbMifflin("M", 30, 70, 165)).toBe(1586);
     expect(tmbHarris("M", 30, 70, 165)).toBe(1648);
   });
 
   it("calcula GET y objetivo calorico", () => {
-    expect(calcularGET(1486, 1.55)).toBe(2303);
-    expect(kcalObjetivo(2303, "bajar")).toBe(1903);
-    expect(kcalObjetivo(2303, "mantener")).toBe(2303);
-    expect(kcalObjetivo(2303, "subir")).toBe(2703);
+    expect(calcularGET(1586, 1.55)).toBe(2458);
+    expect(kcalObjetivo(2458, "bajar")).toBe(2058);
+    expect(kcalObjetivo(2458, "mantener")).toBe(2458);
+    expect(kcalObjetivo(2458, "subir")).toBe(2858);
   });
 
   it("calcula ICC y riesgo por sexo", () => {

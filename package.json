@@ -11,7 +11,7 @@
     "test": "vitest run",
     "db:migrate": "node -r ts-node/register/transpile-only db/migrate.cjs.ts",
     "db:seed": "sqlite3 data/tomi_nutri.sqlite < db/seed.sql",
-    "db:seed:alimentos": "sqlite3 data/tomi_nutri.sqlite < db/seed_alimentos.sql"
+    "db:seed:alimentos": "node scripts/seed-alimentos.js"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",

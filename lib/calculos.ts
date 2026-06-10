@@ -49,8 +49,8 @@ export function pesoIdealLorentz(sexo: Sexo, tallaCm: number) {
 }
 
 export function tmbMifflin(sexo: Sexo, edad: number, pesoKg: number, tallaCm: number) {
-  // Mifflin-St Jeor con el ajuste contractual del roadmap para el caso M/30/70/165 = 1486.
-  const ajusteSexo = normalizarSexo(sexo) === "F" ? -161 : -95;
+  // Mifflin-St Jeor: +5 en hombres y -161 en mujeres, igual al HTML de referencia.
+  const ajusteSexo = normalizarSexo(sexo) === "F" ? -161 : 5;
   return Math.round(10 * pesoKg + 6.25 * tallaCm - 5 * edad + ajusteSexo);
 }
 

@@ -60,28 +60,39 @@ export async function crearAlimentoCustom(datos: AlimentoInput) {
   const nombre = datos.nombre.trim();
   if (!nombre) throw new Error("El nombre del alimento es obligatorio.");
 
+  const valores = [
+    Number(datos.kcal || 0),
+    Number(datos.prot || 0),
+    Number(datos.cho || 0),
+    Number(datos.gras || 0),
+    Number(datos.fibra || 0),
+    datos.grupo?.trim() || "Custom",
+  ] as const;
+
+  const existente = await db.get<{ id: number; es_custom: number }>(
+    `select id, es_custom from alimentos where lower(nombre) = lower(?)`,
+    [nombre]
+  );
+
+  if (existente && existente.es_custom !== 1) {
+    throw new Error("Ya existe un alimento base con ese nombre. Usá otro nombre para el custom.");
+  }
+
+  if (existente) {
+    await db.run(
+      `update alimentos
+       set kcal = ?, prot = ?, cho = ?, gras = ?, fibra = ?, grupo = ?,
+           activo = 1, actualizado_en = datetime('now')
+       where id = ? and es_custom = 1`,
+      [...valores, existente.id]
+    );
+    return existente.id;
+  }
+
   const res = await db.run(
     `insert into alimentos (nombre, kcal, prot, cho, gras, fibra, grupo, es_custom, actualizado_en)
-     values (?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
-     on conflict(nombre) do update set
-       kcal = excluded.kcal,
-       prot = excluded.prot,
-       cho = excluded.cho,
-       gras = excluded.gras,
-       fibra = excluded.fibra,
-       grupo = excluded.grupo,
-       es_custom = 1,
-       activo = 1,
-       actualizado_en = datetime('now')`,
-    [
-      nombre,
-      Number(datos.kcal || 0),
-      Number(datos.prot || 0),
-      Number(datos.cho || 0),
-      Number(datos.gras || 0),
-      Number(datos.fibra || 0),
-      datos.grupo?.trim() || "Custom",
-    ]
+     values (?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))`,
+    [nombre, ...valores]
   );
 
   return res.lastID;
