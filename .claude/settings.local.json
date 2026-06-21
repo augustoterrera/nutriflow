@@ -27,7 +27,18 @@
       "Bash(cd /Users/augustoterrera/Proyectos/NutriFlow *)",
       "Bash(grep -nE 'style=\\\\{\\\\{|bg-\\(slate|blue|red|green|gray\\)-[0-9]|border-\\(white|gray\\)|bg-white|rgba\\\\\\(|#[0-9a-fA-F]{3,6}' \"app/dashboard/pacientes/[id]/page.tsx\")",
       "Bash(grep -nE 'style=\\\\{\\\\{|#[0-9a-fA-F]{3,6}|bg-\\(slate|blue|red|green\\)-[0-9]|border-\\(white|gray\\)|text-black|rgba\\\\\\(' \"app/dashboard/pacientes/[id]/page.tsx\" components/pacientes/RiesgoCardiometabolico.tsx)",
-      "Bash(grep -nE \"style=|#[0-9a-fA-F]{3,6}|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-\" components/anamnesis/AnamnesisHistorialTable.tsx \"app/dashboard/pacientes/[id]/anamnesis/page.tsx\")"
+      "Bash(grep -nE \"style=|#[0-9a-fA-F]{3,6}|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-\" components/anamnesis/AnamnesisHistorialTable.tsx \"app/dashboard/pacientes/[id]/anamnesis/page.tsx\")",
+      "Bash(grep -nE \"#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|style=|gradient|from-\\\\[|to-\\\\[\" \"app/dashboard/pacientes/[id]/planes/[pid]/imprimir/page.tsx\")",
+      "Bash([ -f \"$DB\" ])",
+      "Bash(sqlite3 -header -column data/tomi_nutri.sqlite 'select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm, grasa_pct, musculo_pct, brazo_cm, muneca_cm, substr\\(coalesce\\(observaciones,'\\\\'''\\\\''\\),1,15\\) as obs from mediciones order by id desc limit 5;')",
+      "Bash(grep -rniA 15 \"create table.*plan_items\\\\|plan_items.*\\(\" db/)",
+      "Bash(grep -rnE \"style=|#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-|bg-red-|text-black\" components/planes/PlanEditor.tsx)",
+      "Bash(sqlite3 data/tomi_nutri.sqlite 'PRAGMA table_info\\(planes\\);')",
+      "Bash(sqlite3 data/tomi_nutri.sqlite 'select \\(select count\\(*\\) from planes\\) as planes, \\(select count\\(*\\) from plan_comidas\\) as comidas, \\(select count\\(*\\) from plan_items\\) as items;')",
+      "Bash(sqlite3 -header -column data/tomi_nutri.sqlite 'select id, paciente_id, nombre, fecha from planes order by id;')",
+      "Bash(pnpm db:migrate)",
+      "Bash(grep -nE \"style=|#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-|bg-red-|text-black\" components/planes/PlanGridEditor.tsx)",
+      "Bash(grep -nE \"#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|gradient|from-\\\\[|to-\\\\[| style=\" \"app/dashboard/pacientes/[id]/planes/[pid]/imprimir/page.tsx\")"
     ],
     "additionalDirectories": [
       "/Users/augustoterrera/Proyectos/NutriFlow/app/dashboard/pacientes/[id]"

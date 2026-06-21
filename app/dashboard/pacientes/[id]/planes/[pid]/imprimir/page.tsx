@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
-import { obtenerPlanCompleto } from "@/lib/planes";
-import { edadDesdeFechaNacimiento, totalesPlan } from "@/lib/calculos";
+import { obtenerPlanGrid } from "@/lib/planes";
+import { ORDEN_GRILLA, LABEL_COMIDA } from "@/lib/plan-constants";
 import { PrintButton } from "@/components/planes/PrintButton";
 
 export default async function ImprimirPlanPage(props: {
@@ -13,82 +13,129 @@ export default async function ImprimirPlanPage(props: {
   if (!Number.isFinite(pacienteId) || !Number.isFinite(planId)) notFound();
 
   const db = await getDB();
-  const [paciente, medicion, plan] = await Promise.all([
-    db.get(`select * from pacientes where id = ? and activo = 1`, [pacienteId]),
-    db.get(`select * from mediciones where paciente_id = ? order by date(fecha) desc, id desc limit 1`, [pacienteId]),
-    obtenerPlanCompleto(planId),
-  ]);
-  if (!paciente || !plan || Number((plan as any).paciente_id) !== pacienteId) notFound();
+  const paciente = await db.get(
+    `select * from pacientes where id = ? and activo = 1`,
+    [pacienteId]
+  );
+  if (!paciente) notFound();
 
-  const comidas = (plan as any).comidas;
-  const items = comidas.flatMap((comida: any) => comida.items);
-  const total = totalesPlan(items);
-  const edad = edadDesdeFechaNacimiento(paciente.fecha_nacimiento);
+  const owner = await db.get(`select paciente_id from planes where id = ?`, [planId]);
+  if (!owner || Number(owner.paciente_id) !== pacienteId) notFound();
+
+  const plan = await obtenerPlanGrid(planId);
+  if (!plan) notFound();
+
+  const datosCabecera = [
+    plan.peso ? { label: "Peso", value: plan.peso } : null,
+    plan.talla ? { label: "Talla", value: plan.talla } : null,
+    plan.imc ? { label: "IMC", value: plan.imc } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
 
   return (
-    <main className="min-h-screen bg-[#F7FBF8] p-6 text-[#1A2E23] print:bg-white print:p-0">
-      <PrintButton />
-      <section className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow print:shadow-none">
-        <header className="bg-gradient-to-r from-[#1B4332] to-[#40916C] p-8 text-white">
-          <h1 className="text-3xl font-semibold">{(plan as any).nombre}</h1>
-          <p className="mt-2">{paciente.nombre_completo} {edad != null ? `· ${edad} años` : ""} {medicion?.peso_kg ? `· ${medicion.peso_kg} kg` : ""}</p>
-          <p className="mt-1 text-sm opacity-90">Fecha: {(plan as any).fecha} · {total.kcal} kcal/día</p>
-        </header>
+    // Documento claro independiente del tema oscuro de la app. Escala neutral + impresión apaisada.
+    <main className="min-h-screen bg-neutral-100 p-6 text-neutral-900 print:bg-white print:p-0">
+      <style>{`@media print { @page { size: landscape; margin: 10mm; } }`}</style>
 
-        <div className="space-y-6 p-8">
-          {comidas.map((comida: any) => (
-            <section key={comida.tipo}>
-              <h2 className="mb-2 text-xl font-semibold capitalize">{labelComida(comida.tipo)}</h2>
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="bg-[#D8F3DC] text-left">
-                    <th className="p-2">Alimento</th>
-                    <th className="p-2 text-right">Gramos</th>
-                    <th className="p-2 text-right">Kcal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comida.items.map((item: any) => (
-                    <tr key={item.id} className="border-b border-[#DFF0E7]">
-                      <td className="p-2">{item.nombre}</td>
-                      <td className="p-2 text-right">{item.gramos} g</td>
-                      <td className="p-2 text-right">{Math.round(item.kcal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {comida.nota ? <div className="mt-2 rounded-md border border-[#F4A261] bg-[#FFF4EA] p-3 text-sm">{comida.nota}</div> : null}
-            </section>
-          ))}
+      <div className="mx-auto max-w-6xl">
+        <PrintButton />
 
-          <section className="grid gap-3 rounded-lg bg-[#F0FBF4] p-4 sm:grid-cols-4">
-            <Summary label="Proteínas" value={`${total.prot} g`} extra={`${total.pProt}%`} />
-            <Summary label="Carbohidratos" value={`${total.cho} g`} extra={`${total.pCho}%`} />
-            <Summary label="Grasas" value={`${total.gras} g`} extra={`${total.pGras}%`} />
-            <Summary label="Fibra" value={`${total.fibra} g`} extra="" />
-          </section>
+        <section className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-8 shadow print:border-0 print:p-0 print:shadow-none">
+          <header className="mb-6">
+            <h1 className="text-center text-2xl font-bold tracking-wide">PLAN ALIMENTARIO</h1>
+            <h2 className="mt-4 text-lg font-semibold">{paciente.nombre_completo}</h2>
 
-          <footer className="border-t border-[#DFF0E7] pt-4 text-center text-sm text-[#4A6357]">
+            {datosCabecera.length ? (
+              <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 text-sm text-neutral-700">
+                {datosCabecera.map((d) => (
+                  <span key={d.label}>
+                    <span className="text-neutral-500">{d.label}:</span> {d.value}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            {plan.objetivo || plan.kcalObjetivo ? (
+              <div className="mt-3 inline-block rounded-md border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm">
+                {plan.objetivo ? (
+                  <div>
+                    <span className="text-neutral-500">Objetivo:</span> {plan.objetivo}
+                  </div>
+                ) : null}
+                {plan.kcalObjetivo ? (
+                  <div>
+                    <span className="text-neutral-500">Plan:</span> {plan.kcalObjetivo}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </header>
+
+          <div className="space-y-8">
+            {plan.semanas.map((semana, si) => {
+              const dias = Array.from({ length: semana.dias }, (_, i) => i);
+              return (
+                <section
+                  key={si}
+                  className={si > 0 ? "break-before-page" : undefined}
+                >
+                  {plan.semanas.length > 1 ? (
+                    <h3 className="mb-2 text-base font-semibold">{semana.titulo}</h3>
+                  ) : null}
+                  <table className="w-full table-fixed border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-neutral-100 text-left">
+                        <th className="w-28 border border-neutral-300 p-2 font-semibold">Alimentación</th>
+                        {dias.map((d) => (
+                          <th key={d} className="border border-neutral-300 p-2 font-semibold">
+                            DÍA {d + 1}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ORDEN_GRILLA.map((tipo) => (
+                        <tr key={tipo} className="align-top">
+                          <th className="border border-neutral-300 bg-neutral-50 p-2 text-left text-xs font-semibold text-neutral-600 uppercase">
+                            {LABEL_COMIDA[tipo]}
+                          </th>
+                          {dias.map((d) => (
+                            <td key={d} className="border border-neutral-200 p-2">
+                              <Celda texto={semana.celdas[`${tipo}:${d}`] ?? ""} />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              );
+            })}
+          </div>
+
+          <footer className="mt-6 border-t border-neutral-200 pt-4 text-center text-sm text-neutral-500">
             Elaborado por Álvaro Tomás Terrera · Técnico en Nutrición · @alvaro.nutre
           </footer>
-        </div>
-      </section>
-      <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
+        </section>
+      </div>
     </main>
   );
 }
 
-function Summary(props: { label: string; value: string; extra: string }) {
-  return (
-    <div>
-      <div className="text-sm text-[#4A6357]">{props.label}</div>
-      <div className="text-xl font-semibold">{props.value}</div>
-      <div className="text-sm text-[#4A6357]">{props.extra}</div>
-    </div>
-  );
-}
+// Renderiza una celda: si tiene varias líneas, la primera va en negrita (título del plato).
+function Celda({ texto }: { texto: string }) {
+  const limpio = (texto ?? "").trim();
+  if (!limpio) return <span className="text-neutral-400">—</span>;
 
-function labelComida(tipo: string) {
-  if (tipo === "colacion") return "Colación";
-  return tipo;
+  const lineas = limpio.split("\n");
+  if (lineas.length === 1) {
+    return <span className="whitespace-pre-wrap">{limpio}</span>;
+  }
+
+  const [titulo, ...resto] = lineas;
+  return (
+    <span className="whitespace-pre-wrap">
+      <span className="font-semibold">{titulo}</span>
+      {resto.length ? `\n${resto.join("\n")}` : null}
+    </span>
+  );
 }

@@ -21,7 +21,8 @@ type PlanResumen = {
   id: number
   nombre: string
   fecha: string | null
-  total_kcal: number
+  kcal_objetivo: string | null
+  objetivo: string | null
 }
 
 export default async function PlanesPacientePage({
@@ -96,9 +97,11 @@ export default async function PlanesPacientePage({
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-semibold">
-                      {Math.round(Number(plan.total_kcal ?? 0))} kcal
+                      {plan.kcal_objetivo?.trim() || "Plan semanal"}
                     </div>
-                    <p className="text-muted-foreground mt-1 text-sm">Energía total del plan</p>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      {plan.objetivo?.trim() || "Grilla por comida y día"}
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
