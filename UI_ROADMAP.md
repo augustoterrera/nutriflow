@@ -755,8 +755,16 @@ con colores hardcodeados; `[pid]` con `<table>`/`<button>` crudos.
 
 ---
 
-### Fase 9 — Calculadora energética
+### Fase 9 — Calculadora energética ✅ (HECHA — validada)
 **Objetivo.** Calculadora con form claro y resultados legibles.
+
+> **Validación (2026-06-21).** `pnpm lint` 0 errores (2 warnings preexistentes fuera de la fase) ·
+> **13 tests** aprobados · `pnpm build` verde. Implementado: página con `PageShell` + `PageHeader`;
+> formulario accesible con `Field`/`FieldLabel`/`FieldError`, `Input` y `SelectNative`; validación inline y
+> soporte de coma decimal; layout responsive formulario | resultados; comparación simultánea de TMB
+> Mifflin-St Jeor y Harris-Benedict; tarjetas diferenciadas para GET y objetivo, con indicación de la fórmula,
+> factor de actividad y ajuste aplicados. La lógica de `lib/calculos.ts` se mantuvo intacta y el grep de
+> anti-patrones de la sección quedó limpio.
 
 **Archivos.** `app/dashboard/calculadora/page.tsx`, `components/calculadora/CalculadoraForm.tsx`.
 
@@ -769,6 +777,35 @@ con colores hardcodeados; `[pid]` con `<table>`/`<button>` crudos.
    cálculo (`lib/calculos.ts`) intacta.
 
 **DoD.** §6 + build verde.
+
+---
+
+### Fase 9.1 — Evaluación energética por paciente ✅ (HECHA — validada)
+**Objetivo.** Convertir el cálculo rápido en una evaluación clínica trazable, vinculada a las mediciones y
+planes del paciente, sin perder la calculadora global.
+
+> **Validación (2026-06-21).** Migración `009_evaluaciones_energeticas.sql` aplicada sin errores y
+> `PRAGMA foreign_key_check` limpio · `pnpm lint` 0 errores (2 warnings preexistentes fuera de la fase) ·
+> **17 tests** aprobados · `pnpm build` verde. La nueva ruta `/dashboard/pacientes/[id]/energia` aparece en
+> el build y el grep de anti-patrones de la sección quedó limpio.
+
+**Implementado.**
+1. Nueva tabla `evaluaciones_energeticas`: fotografía inmutable de fecha, medición de origen, edad, sexo,
+   peso, talla, actividad, fórmula, ambas TMB, GET, ajuste profesional, objetivo, observaciones y versión
+   del cálculo. Las mediciones se enlazan con `ON DELETE SET NULL` sin perder la fotografía.
+2. Nueva pestaña **Energía** en el workspace: precarga la última medición, calcula la edad en la fecha de
+   evaluación, separa vista previa de guardado y muestra un historial cronológico sin acciones de edición o
+   borrado. Peso/talla modificados quedan identificados como carga manual.
+3. El Resumen del paciente muestra la última evaluación guardada. La calculadora del menú se conserva y se
+   renombra **Cálculo rápido** para distinguirla del registro clínico.
+4. La lógica compartida vive en `lib/energia.ts`; calculadora rápida y evaluación usan exactamente el mismo
+   cálculo y las mismas opciones. Se agregaron tests para fórmula seleccionada, ajuste manual y edad histórica.
+5. `planes.evaluacion_energetica_id` conserva la referencia usada. En alta/edición se puede seleccionar una
+   evaluación, copiar peso/talla/IMC/objetivo/kcal y después ajustar el plan sin modificar el registro. La
+   referencia también aparece en la lista y en la impresión.
+
+**DoD.** Persistencia reproducible, historial sin sobrescritura, vínculo plan→evaluación validado por paciente,
+UI responsive/accesible, migración/lint/tests/build verdes.
 
 ---
 

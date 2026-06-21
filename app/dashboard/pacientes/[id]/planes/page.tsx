@@ -6,6 +6,7 @@ import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspa
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageShell } from "@/components/shared/page-shell"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardAction,
@@ -23,6 +24,7 @@ type PlanResumen = {
   fecha: string | null
   kcal_objetivo: string | null
   objetivo: string | null
+  evaluacion_fecha: string | null
 }
 
 export default async function PlanesPacientePage({
@@ -102,6 +104,11 @@ export default async function PlanesPacientePage({
                     <p className="text-muted-foreground mt-1 text-sm">
                       {plan.objetivo?.trim() || "Grilla por comida y día"}
                     </p>
+                    {plan.evaluacion_fecha ? (
+                      <Badge variant="secondary" className="mt-3">
+                        Evaluación del {formatFecha(plan.evaluacion_fecha)}
+                      </Badge>
+                    ) : null}
                   </CardContent>
                 </Card>
               </Link>

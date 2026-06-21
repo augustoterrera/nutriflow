@@ -10,6 +10,7 @@ const secciones = [
   { label: "Ficha", segment: "ficha" },
   { label: "Anamnesis", segment: "anamnesis" },
   { label: "Mediciones", segment: "mediciones" },
+  { label: "Energía", segment: "energia" },
   { label: "Planes", segment: "planes" },
 ] as const
 

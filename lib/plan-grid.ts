@@ -21,6 +21,7 @@ export type PlanGridCompleto = PlanGrid & {
   id: number;
   nombre: string;
   fecha: string | null;
+  evaluacionEnergeticaId: number | null;
 };
 
 export function semanaVacia(titulo = "Semana 1", dias = 5): PlanSemana {

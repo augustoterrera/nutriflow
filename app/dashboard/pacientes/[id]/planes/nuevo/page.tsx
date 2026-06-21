@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
 import { calcularIMC } from "@/lib/calculos";
+import { OBJETIVO_ENERGETICO_LABELS } from "@/lib/energia";
+import { listarEvaluacionesEnergeticas } from "@/lib/evaluaciones-energeticas";
 import { gridVacio } from "@/lib/planes";
 import { guardarPlanAction } from "../actions";
 
@@ -29,13 +31,21 @@ export default async function NuevoPlanPage(props: {
      where paciente_id = ? order by date(fecha) desc, id desc limit 1`,
     [pacienteId]
   );
+  const evaluaciones = await listarEvaluacionesEnergeticas(pacienteId, 20);
+  const evaluacionReferencia = evaluaciones[0] ?? null;
 
   const grid = gridVacio();
-  if (medicion?.peso_kg != null) grid.peso = `${medicion.peso_kg} kg`;
-  if (medicion?.altura_cm != null) grid.talla = `${medicion.altura_cm} cm`;
-  if (medicion?.peso_kg != null && medicion?.altura_cm != null) {
-    const imc = calcularIMC(Number(medicion.peso_kg), Number(medicion.altura_cm));
+  const pesoInicial = evaluacionReferencia?.pesoKg ?? medicion?.peso_kg ?? null;
+  const tallaInicial = evaluacionReferencia?.tallaCm ?? medicion?.altura_cm ?? null;
+  if (pesoInicial != null) grid.peso = `${pesoInicial} kg`;
+  if (tallaInicial != null) grid.talla = `${tallaInicial} cm`;
+  if (pesoInicial != null && tallaInicial != null) {
+    const imc = calcularIMC(Number(pesoInicial), Number(tallaInicial));
     if (imc != null) grid.imc = imc.toFixed(1);
+  }
+  if (evaluacionReferencia) {
+    grid.objetivo = OBJETIVO_ENERGETICO_LABELS[evaluacionReferencia.objetivoTipo];
+    grid.kcalObjetivo = `${evaluacionReferencia.objetivoKcal} kcal`;
   }
 
   return (
@@ -56,6 +66,16 @@ export default async function NuevoPlanPage(props: {
         defaultNombre="Plan alimentario"
         defaultFecha={new Date().toISOString().slice(0, 10)}
         defaultGrid={grid}
+        defaultEvaluacionId={evaluacionReferencia?.id ?? null}
+        evaluaciones={evaluaciones.map((evaluacion) => ({
+          id: evaluacion.id,
+          fecha: evaluacion.fecha,
+          objetivoKcal: evaluacion.objetivoKcal,
+          objetivoTipo: evaluacion.objetivoTipo,
+          pesoKg: evaluacion.pesoKg,
+          tallaCm: evaluacion.tallaCm,
+          formula: evaluacion.formula,
+        }))}
         action={guardarPlanAction.bind(null, pacienteId, null)}
       />
     </PageShell>

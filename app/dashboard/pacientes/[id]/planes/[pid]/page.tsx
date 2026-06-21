@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
 import { obtenerPlanGrid, type PlanGrid } from "@/lib/planes";
+import { listarEvaluacionesEnergeticas } from "@/lib/evaluaciones-energeticas";
 import { eliminarPlanAction, guardarPlanAction } from "../actions";
 
 import { PageShell } from "@/components/shared/page-shell";
 import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspace-header";
 import { PlanGridEditor } from "@/components/planes/PlanGridEditor";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default async function EditarPlanPage(props: {
   params: Promise<{ id: string; pid: string }>;
@@ -30,6 +32,7 @@ export default async function EditarPlanPage(props: {
 
   const plan = await obtenerPlanGrid(planId);
   if (!plan) notFound();
+  const evaluaciones = await listarEvaluacionesEnergeticas(pacienteId, 20);
 
   const grid: PlanGrid = {
     objetivo: plan.objetivo,
@@ -46,7 +49,7 @@ export default async function EditarPlanPage(props: {
         paciente={paciente}
         actions={
           <form action={eliminarPlanAction.bind(null, pacienteId)}>
-            <input type="hidden" name="plan_id" value={planId} />
+            <Input type="hidden" name="plan_id" value={planId} />
             <Button type="submit" variant="destructive">
               Eliminar plan
             </Button>
@@ -68,6 +71,16 @@ export default async function EditarPlanPage(props: {
         defaultNombre={plan.nombre}
         defaultFecha={String(plan.fecha ?? "").slice(0, 10)}
         defaultGrid={grid}
+        defaultEvaluacionId={plan.evaluacionEnergeticaId}
+        evaluaciones={evaluaciones.map((evaluacion) => ({
+          id: evaluacion.id,
+          fecha: evaluacion.fecha,
+          objetivoKcal: evaluacion.objetivoKcal,
+          objetivoTipo: evaluacion.objetivoTipo,
+          pesoKg: evaluacion.pesoKg,
+          tallaCm: evaluacion.tallaCm,
+          formula: evaluacion.formula,
+        }))}
         action={guardarPlanAction.bind(null, pacienteId, planId)}
       />
     </PageShell>

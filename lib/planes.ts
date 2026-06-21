@@ -13,12 +13,14 @@ export { gridVacio, semanaVacia } from "@/lib/plan-grid";
 export async function listarPlanesDePaciente(pacienteId: number) {
   const db = await getDB();
   return db.all(
-    `select id, uuid, nombre, fecha,
+    `select p.id, p.uuid, p.nombre, p.fecha,
             json_extract(grid_json, '$.kcalObjetivo') as kcal_objetivo,
-            json_extract(grid_json, '$.objetivo') as objetivo
-     from planes
-     where paciente_id = ?
-     order by date(fecha) desc, id desc`,
+            json_extract(grid_json, '$.objetivo') as objetivo,
+            e.fecha as evaluacion_fecha
+     from planes p
+     left join evaluaciones_energeticas e on e.id = p.evaluacion_energetica_id
+     where p.paciente_id = ?
+     order by date(p.fecha) desc, p.id desc`,
     [pacienteId]
   );
 }
@@ -32,6 +34,10 @@ export async function obtenerPlanGrid(planId: number): Promise<PlanGridCompleto 
     id: Number(plan.id),
     nombre: String(plan.nombre ?? ""),
     fecha: plan.fecha ?? null,
+    evaluacionEnergeticaId:
+      plan.evaluacion_energetica_id == null
+        ? null
+        : Number(plan.evaluacion_energetica_id),
     ...parseGrid(plan.grid_json),
   };
 }
@@ -41,12 +47,24 @@ export type GuardarPlanInput = {
   nombre: string;
   fecha?: string | null;
   grid: PlanGrid;
+  evaluacionEnergeticaId?: number | null;
 };
 
 export async function guardarPlanGrid(pacienteId: number, datos: GuardarPlanInput) {
   const db = await getDB();
   const nombre = datos.nombre.trim() || "Plan alimentario";
   const gridJson = JSON.stringify(datos.grid);
+  const evaluacionEnergeticaId = datos.evaluacionEnergeticaId
+    ? Number(datos.evaluacionEnergeticaId)
+    : null;
+
+  if (evaluacionEnergeticaId) {
+    const evaluacion = await db.get(
+      `select id from evaluaciones_energeticas where id = ? and paciente_id = ?`,
+      [evaluacionEnergeticaId, pacienteId]
+    );
+    if (!evaluacion) throw new Error("La evaluación energética no pertenece al paciente.");
+  }
 
   let planId = Number(datos.id || 0);
 
@@ -59,15 +77,24 @@ export async function guardarPlanGrid(pacienteId: number, datos: GuardarPlanInpu
 
     await db.run(
       `update planes
-       set nombre = ?, fecha = coalesce(?, fecha), grid_json = ?, actualizado_en = datetime('now')
+       set nombre = ?, fecha = coalesce(?, fecha), grid_json = ?,
+           evaluacion_energetica_id = ?, actualizado_en = datetime('now')
        where id = ? and paciente_id = ?`,
-      [nombre, datos.fecha || null, gridJson, planId, pacienteId]
+      [
+        nombre,
+        datos.fecha || null,
+        gridJson,
+        evaluacionEnergeticaId,
+        planId,
+        pacienteId,
+      ]
     );
   } else {
     const res = await db.run(
-      `insert into planes (paciente_id, nombre, fecha, grid_json, actualizado_en)
-       values (?, ?, coalesce(?, date('now')), ?, datetime('now'))`,
-      [pacienteId, nombre, datos.fecha || null, gridJson]
+      `insert into planes (
+         paciente_id, nombre, fecha, grid_json, evaluacion_energetica_id, actualizado_en
+       ) values (?, ?, coalesce(?, date('now')), ?, ?, datetime('now'))`,
+      [pacienteId, nombre, datos.fecha || null, gridJson, evaluacionEnergeticaId]
     );
     planId = Number(res.lastID);
   }

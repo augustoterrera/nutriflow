@@ -30,7 +30,7 @@ const items = [
     icon: Users,
   },
   {
-    title: "Calculadora",
+    title: "Cálculo rápido",
     url: "/dashboard/calculadora",
     icon: Zap,
   },

@@ -8,11 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { calcularIMC } from "@/lib/calculos";
+import {
+  FORMULA_ENERGETICA_LABELS,
+  OBJETIVO_ENERGETICO_LABELS,
+  type FormulaEnergetica,
+  type ObjetivoEnergetico,
+} from "@/lib/energia";
 import { ORDEN_GRILLA, LABEL_COMIDA } from "@/lib/plan-constants";
 import { semanaVacia, type PlanGrid, type PlanSemana } from "@/lib/plan-grid";
 
 const cellKey = (tipo: string, dia: number) => `${tipo}:${dia}`;
+
+export type EvaluacionPlanOption = {
+  id: number;
+  fecha: string;
+  objetivoKcal: number;
+  objetivoTipo: ObjetivoEnergetico;
+  pesoKg: number;
+  tallaCm: number;
+  formula: FormulaEnergetica;
+};
 
 export function PlanGridEditor(props: {
   pacienteId: number;
@@ -21,11 +39,16 @@ export function PlanGridEditor(props: {
   defaultNombre: string;
   defaultFecha: string;
   defaultGrid: PlanGrid;
+  defaultEvaluacionId: number | null;
+  evaluaciones: EvaluacionPlanOption[];
   action: (formData: FormData) => void;
 }) {
   const [nombre, setNombre] = React.useState(props.defaultNombre);
   const [fecha, setFecha] = React.useState(props.defaultFecha);
   const [grid, setGrid] = React.useState<PlanGrid>(props.defaultGrid);
+  const [evaluacionId, setEvaluacionId] = React.useState<number | null>(
+    props.defaultEvaluacionId
+  );
 
   const updateGrid = (patch: Partial<PlanGrid>) => setGrid((g) => ({ ...g, ...patch }));
 
@@ -66,15 +89,56 @@ export function PlanGridEditor(props: {
       semanas: g.semanas.length > 1 ? g.semanas.filter((_, i) => i !== si) : g.semanas,
     }));
 
+  const seleccionarEvaluacion = (raw: string) => {
+    const id = Number(raw);
+    const evaluacion = props.evaluaciones.find((item) => item.id === id);
+    setEvaluacionId(evaluacion ? evaluacion.id : null);
+    if (!evaluacion) return;
+
+    const imc = calcularIMC(evaluacion.pesoKg, evaluacion.tallaCm);
+    setGrid((current) => ({
+      ...current,
+      peso: `${evaluacion.pesoKg} kg`,
+      talla: `${evaluacion.tallaCm} cm`,
+      imc: Number.isFinite(imc) ? imc.toFixed(1) : current.imc,
+      objetivo: OBJETIVO_ENERGETICO_LABELS[evaluacion.objetivoTipo],
+      kcalObjetivo: `${evaluacion.objetivoKcal} kcal`,
+    }));
+  };
+
   return (
     <form action={props.action} className="space-y-6">
-      <input type="hidden" name="nombre" value={nombre} />
-      <input type="hidden" name="fecha" value={fecha} />
-      <input type="hidden" name="grid" value={JSON.stringify(grid)} />
+      <Input type="hidden" name="nombre" value={nombre} />
+      <Input type="hidden" name="fecha" value={fecha} />
+      <Input type="hidden" name="grid" value={JSON.stringify(grid)} />
+      <Input
+        type="hidden"
+        name="evaluacion_energetica_id"
+        value={evaluacionId ?? ""}
+      />
 
       {/* Encabezado del plan */}
       <Card>
         <CardContent className="space-y-4 pt-6">
+          <div className="grid gap-2">
+            <Label htmlFor="plan-evaluacion">Evaluación energética de referencia</Label>
+            <SelectNative
+              id="plan-evaluacion"
+              value={evaluacionId ?? ""}
+              onChange={(event) => seleccionarEvaluacion(event.target.value)}
+            >
+              <option value="">Sin evaluación vinculada</option>
+              {props.evaluaciones.map((evaluacion) => (
+                <option key={evaluacion.id} value={evaluacion.id}>
+                  {formatFecha(evaluacion.fecha)} · {evaluacion.objetivoKcal} kcal · {FORMULA_ENERGETICA_LABELS[evaluacion.formula]}
+                </option>
+              ))}
+            </SelectNative>
+            <p className="text-muted-foreground text-sm">
+              Al elegir una evaluación se copian sus datos y kcal. Podés ajustar el plan después sin alterar el registro clínico.
+            </p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
             <div className="grid gap-2">
               <Label htmlFor="plan-nombre">Nombre del plan</Label>
@@ -187,6 +251,12 @@ export function PlanGridEditor(props: {
       </div>
     </form>
   );
+}
+
+function formatFecha(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.slice(0, 10));
+  if (!match) return value;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
 function SemanaGrid(props: {

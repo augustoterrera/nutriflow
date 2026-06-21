@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
 import { obtenerPlanGrid } from "@/lib/planes";
+import { obtenerEvaluacionEnergetica } from "@/lib/evaluaciones-energeticas";
 import { ORDEN_GRILLA, LABEL_COMIDA } from "@/lib/plan-constants";
 import { PrintButton } from "@/components/planes/PrintButton";
 
@@ -24,6 +25,9 @@ export default async function ImprimirPlanPage(props: {
 
   const plan = await obtenerPlanGrid(planId);
   if (!plan) notFound();
+  const evaluacion = plan.evaluacionEnergeticaId
+    ? await obtenerEvaluacionEnergetica(plan.evaluacionEnergeticaId, pacienteId)
+    : null;
 
   const datosCabecera = [
     plan.peso ? { label: "Peso", value: plan.peso } : null,
@@ -54,7 +58,7 @@ export default async function ImprimirPlanPage(props: {
               </div>
             ) : null}
 
-            {plan.objetivo || plan.kcalObjetivo ? (
+            {plan.objetivo || plan.kcalObjetivo || evaluacion ? (
               <div className="mt-3 inline-block rounded-md border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm">
                 {plan.objetivo ? (
                   <div>
@@ -64,6 +68,12 @@ export default async function ImprimirPlanPage(props: {
                 {plan.kcalObjetivo ? (
                   <div>
                     <span className="text-neutral-500">Plan:</span> {plan.kcalObjetivo}
+                  </div>
+                ) : null}
+                {evaluacion ? (
+                  <div>
+                    <span className="text-neutral-500">Referencia energética:</span>{" "}
+                    {formatFecha(evaluacion.fecha)} · {evaluacion.objetivoKcal} kcal/día
                   </div>
                 ) : null}
               </div>
@@ -119,6 +129,12 @@ export default async function ImprimirPlanPage(props: {
       </div>
     </main>
   );
+}
+
+function formatFecha(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.slice(0, 10));
+  if (!match) return value;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
 // Renderiza una celda: si tiene varias líneas, la primera va en negrita (título del plato).

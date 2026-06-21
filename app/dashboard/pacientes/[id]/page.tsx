@@ -29,6 +29,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  FORMULA_ENERGETICA_LABELS,
+  OBJETIVO_ENERGETICO_LABELS,
+} from "@/lib/energia";
+import { obtenerUltimaEvaluacionEnergetica } from "@/lib/evaluaciones-energeticas";
 
 export default async function PacientePage(props: {
   params: Promise<{ id: string }>;
@@ -39,7 +44,14 @@ export default async function PacientePage(props: {
 
   const db = await getDB();
 
-  const [paciente, ultimaAnamnesis, rowCountAnam, rowCountPlanes, mediciones] =
+  const [
+    paciente,
+    ultimaAnamnesis,
+    rowCountAnam,
+    rowCountPlanes,
+    mediciones,
+    ultimaEvaluacionEnergetica,
+  ] =
     await Promise.all([
       db.get(`select * from pacientes where id = ? and activo = 1`, [id]),
       db.get(
@@ -52,6 +64,7 @@ export default async function PacientePage(props: {
         `select * from mediciones where paciente_id = ? order by date(fecha) desc, id desc`,
         [id]
       ),
+      obtenerUltimaEvaluacionEnergetica(id),
     ]);
 
   if (!paciente) notFound();
@@ -101,14 +114,6 @@ export default async function PacientePage(props: {
     imc,
   });
   const whtr = riesgo.whtr;
-
-  const calcParams = new URLSearchParams();
-  if (edad) calcParams.set("edad", String(edad));
-  if (ultimaMedicion?.peso_kg) calcParams.set("peso", String(ultimaMedicion.peso_kg));
-  if (alturaRef) calcParams.set("talla", String(alturaRef));
-  if (paciente.sexo) calcParams.set("sexo", String(paciente.sexo));
-  const calcHref = `/dashboard/calculadora?${calcParams.toString()}`;
-  const puedeCalcular = Boolean(edad && ultimaMedicion?.peso_kg && alturaRef);
 
   const resumen =
     ultimaMedicion && anteriorMedicion
@@ -263,6 +268,47 @@ export default async function PacientePage(props: {
 
         {/* Columna derecha */}
         <div className="flex flex-col gap-4">
+          {/* Última evaluación energética guardada */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Evaluación energética</CardTitle>
+              <CardDescription>
+                {ultimaEvaluacionEnergetica
+                  ? `Última evaluación · ${formatFechaCorta(ultimaEvaluacionEnergetica.fecha)}`
+                  : "Todavía no hay una estimación guardada."}
+              </CardDescription>
+              <CardAction>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`${base}/energia`}>
+                    {ultimaEvaluacionEnergetica ? "Ver historial" : "Abrir"}
+                  </Link>
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              {ultimaEvaluacionEnergetica ? (
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-3xl font-semibold tracking-tight">
+                      {ultimaEvaluacionEnergetica.objetivoKcal.toLocaleString("es-AR")}
+                      <span className="text-muted-foreground ml-2 text-sm font-normal">kcal/día</span>
+                    </div>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      GET {ultimaEvaluacionEnergetica.getKcal.toLocaleString("es-AR")} kcal · {FORMULA_ENERGETICA_LABELS[ultimaEvaluacionEnergetica.formula]}
+                    </p>
+                  </div>
+                  <Badge variant="secondary">
+                    {OBJETIVO_ENERGETICO_LABELS[ultimaEvaluacionEnergetica.objetivoTipo]}
+                  </Badge>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  Creá la primera evaluación para registrar el GET y usar su objetivo en los planes.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Cálculos clínicos */}
           <Card>
             <CardHeader>
@@ -284,15 +330,6 @@ export default async function PacientePage(props: {
                   <CalcRow label="ICC" sub={iccRiesgo.riesgo} value={icc.toFixed(2)} danger={iccRiesgo.alto} />
                 ) : null}
               </dl>
-              {puedeCalcular ? (
-                <Button asChild className="mt-4 w-full">
-                  <Link href={calcHref}>Calcular kcal objetivo</Link>
-                </Button>
-              ) : (
-                <p className="text-muted-foreground mt-4 text-sm">
-                  Cargá edad, peso y altura para estimar las kcal objetivo.
-                </p>
-              )}
             </CardContent>
           </Card>
 
@@ -534,6 +571,12 @@ function labelDieta(v: any) {
   if (v === "vegano") return "Vegano";
   if (v === "vegetariano") return "Vegetariano";
   return "Omnívoro";
+}
+
+function formatFechaCorta(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).slice(0, 10));
+  if (!match) return value;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
 function renderRitmo(ultima: any, base: any) {
