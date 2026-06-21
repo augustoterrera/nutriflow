@@ -1,10 +1,35 @@
 import Link from "next/link";
 import { getDB } from "@/lib/db";
+import {
+  Apple,
+  ChevronRight,
+  Search,
+  UserPlus,
+  Users,
+  Zap,
+} from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageShell } from "@/components/shared/page-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { StatCard } from "@/components/shared/stat-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardAction,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
+
+const atajos = [
+  { label: "Buscar paciente", href: "/dashboard/pacientes", icon: Search },
+  { label: "Cargar nuevo paciente", href: "/dashboard/pacientes/nuevo", icon: UserPlus },
+  { label: "Calculadora energética", href: "/dashboard/calculadora", icon: Zap },
+  { label: "Banco de alimentos", href: "/dashboard/alimentos", icon: Apple },
+];
 
 export default async function DashboardPage() {
   const db = await getDB();
@@ -36,113 +61,94 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Resumen rápido del consultorio.
-          </p>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Dashboard"
+        description="Resumen rápido del consultorio."
+        actions=""
+      />
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pacientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{totalPacientes}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Activos cargados en el sistema
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Anamnesis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{totalAnamnesis}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Registros históricos
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Pacientes"
+          value={totalPacientes}
+          hint="Activos cargados en el sistema"
+        />
+        <StatCard
+          label="Anamnesis"
+          value={totalAnamnesis}
+          hint="Registros históricos"
+        />
+        <StatCard
+          label="Planes"
+          value={totalPlanes}
+          hint="Planes alimentarios creados"
+        />
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Planes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{totalPlanes}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Planes alimentarios creados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-muted-foreground text-sm font-medium">
               Atajos
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/pacientes">Buscar paciente</Link>
-            </Button>
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/pacientes/nuevo">Cargar nuevo paciente</Link>
-            </Button>
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/calculadora">Calculadora energética</Link>
-            </Button>
-            <Button variant="outline" asChild className="bg-slate-800">
-              <Link href="/dashboard/alimentos">Banco de alimentos</Link>
-            </Button>
+            {atajos.map((a) => (
+              <Button
+                key={a.href}
+                variant="outline"
+                className="justify-start"
+                asChild
+              >
+                <Link href={a.href}>
+                  <a.icon />
+                  {a.label}
+                </Link>
+              </Button>
+            ))}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="mt-6">
+        <CardHeader>
           <CardTitle>Últimos pacientes</CardTitle>
-          <Button variant="secondary" size="sm" asChild className="border-2 border-gray-700">
-            <Link href="/dashboard/pacientes">Ver todos</Link>
-          </Button>
+          <CardAction>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard/pacientes">Ver todos</Link>
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           {ultimosPacientes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Todavía no hay pacientes. Creá el primero para empezar.
-            </p>
+            <EmptyState
+              icon={Users}
+              title="Todavía no hay pacientes"
+              description="Creá el primero para empezar a trabajar."
+              action={
+                <Button asChild>
+                  <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
+                </Button>
+              }
+            />
           ) : (
             <div className="space-y-2">
               {ultimosPacientes.map((p: any) => (
                 <Link
                   key={p.id}
                   href={`/dashboard/pacientes/${p.id}`}
-                  className="flex items-center justify-between rounded-md border p-3 hover:bg-accent"
+                  className="hover:bg-accent flex items-center justify-between gap-3 rounded-md border p-3 transition-colors"
                 >
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{p.nombre_completo}</div>
-                    <div className="text-sm text-muted-foreground">DNI: {p.dni}</div>
+                    <div className="truncate font-medium">{p.nombre_completo}</div>
+                    <div className="text-muted-foreground text-sm">DNI: {p.dni}</div>
                   </div>
-                  <span className="text-sm text-muted-foreground border-2 p-2 border-gray-700 rounded-2xl">Abrir</span>
+                  <ChevronRight className="text-muted-foreground size-4 shrink-0" />
                 </Link>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }
