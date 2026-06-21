@@ -22,7 +22,8 @@
       "Bash(curl -s -o /dev/null -m 2 http://localhost:3458/lock)",
       "Bash(kill -9 199123)",
       "Bash(xargs -r kill -9)",
-      "Bash(curl -s -o /dev/null -m 2 http://localhost:3459/lock)"
+      "Bash(curl -s -o /dev/null -m 2 http://localhost:3459/lock)",
+      "mcp__shadcn__get_item_examples_from_registries"
     ]
   }
 }

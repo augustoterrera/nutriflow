@@ -44,15 +44,6 @@ export default async function DashboardPage() {
             Resumen rápido del consultorio.
           </p>
         </div>
-
-        <div className="flex gap-2">
-          <Button asChild className="bg-slate-800 border-2">
-            <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
-          </Button>
-          <Button variant="secondary" asChild className="bg-slate-800 border-2">
-            <Link href="/dashboard/pacientes">Ver pacientes</Link>
-          </Button>
-        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

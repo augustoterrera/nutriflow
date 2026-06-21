@@ -72,16 +72,11 @@ export default async function MedicionesHistorialPage(props: {
         </div>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link 
-          href={`/dashboard/pacientes/${id}`} 
-          style={{ padding: 10 }} 
-          className="bg-slate-800 rounded-md border">
-            Volver al paciente
-          </Link>
-          <Link 
-          href={`/dashboard/pacientes/${id}/mediciones/nueva`}
-           style={{ padding: 10 }} 
-           className="bg-slate-800 rounded-md border">
+          <Link
+            href={`/dashboard/pacientes/${id}/mediciones/nueva`}
+            style={{ padding: 10 }}
+            className="bg-slate-800 rounded-md border"
+          >
             Nueva medición
           </Link>
         </div>

@@ -1,18 +1,21 @@
-import { Apple, Home, Trash2, Users, Zap } from "lucide-react"
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Apple, HeartPulse, Home, LogOut, Trash2, Users, Zap } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter
 } from "@/components/ui/sidebar"
-import { Button } from "./ui/button"
-import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 // Menu items.
 const items = [
@@ -44,16 +47,45 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const pathname = usePathname()
+
+  function isItemActive(url: string) {
+    if (url === "/dashboard") return pathname === url
+    return pathname === url || pathname.startsWith(`${url}/`)
+  }
+
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" tooltip="NutriFlow" asChild>
+              <Link href="/dashboard">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <HeartPulse className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">NutriFlow</span>
+                  <span className="text-sidebar-foreground/70 truncate text-xs">
+                    Gestión nutricional
+                  </span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isItemActive(item.url)}
+                    tooltip={item.title}
+                  >
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -66,9 +98,19 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="mt-auto p-4 border-t">
-          <Button variant="destructive" className="w-full" asChild>
-            <Link href="/logout">Cerrar sesión</Link>
+        <div className="border-t pt-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
+            asChild
+          >
+            <Link href="/logout">
+              <LogOut />
+              <span className="group-data-[collapsible=icon]:hidden">
+                Cerrar sesión
+              </span>
+            </Link>
           </Button>
         </div>
       </SidebarFooter>

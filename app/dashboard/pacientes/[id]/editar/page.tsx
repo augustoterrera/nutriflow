@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DatePickerSimple } from "@/components/pacientes/Date-picker";
@@ -104,9 +103,6 @@ export default function EditarPacientePage() {
     <div style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <h1 style={{ margin: 0 }}>Editar paciente</h1>
-        <Link href={`/dashboard/pacientes/${pacienteId}`} style={{ marginLeft: "auto", padding: 10 }} className="bg-slate-800 border rounded-md">
-          Volver
-        </Link>
       </div>
 
       <form onSubmit={onSubmit} style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "repeat(2, 1fr)" }}>

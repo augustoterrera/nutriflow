@@ -27,10 +27,6 @@ export default function Error({
           Intentar de nuevo
         </button>
 
-        <Link href="/dashboard/pacientes/nuevo" style={{ padding: 10 }}>
-          Volver al formulario
-        </Link>
-
         <Link href="/dashboard/pacientes" style={{ padding: 10 }}>
           Ir a pacientes
         </Link>

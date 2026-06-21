@@ -7,11 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="dark">
-      <body>
-          <main>
-            {children}
-          </main>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

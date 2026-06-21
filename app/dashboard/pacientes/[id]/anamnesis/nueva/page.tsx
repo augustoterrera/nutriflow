@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDB } from "@/lib/db";
 import { crearAnamnesisAction } from "./actions";
@@ -33,13 +32,6 @@ export default async function NuevaAnamnesisPage(props: {
                     </div>
                 </div>
 
-                <Link
-                    href={`/dashboard/pacientes/${pacienteId}`}
-                    style={{ marginLeft: "auto", padding: 10 }}
-                    className="bg-slate-700 border border-white rounded-md"
-                >
-                    Volver
-                </Link>
             </div>
 
             <form action={action} style={{ marginTop: 16, display: "grid", gap: 12 }}>

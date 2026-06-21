@@ -61,13 +61,6 @@ export default async function AnamnesisHistorialPage(props: {
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link
-            href={`/dashboard/pacientes/${pacienteId}`}
-            style={{ padding: 10 }}
-            className="bg-slate-800 border-2 rounded-md"
-          >
-            Volver al paciente
-          </Link>
-          <Link
             href={`/dashboard/pacientes/${pacienteId}/anamnesis/nueva`}
             style={{ padding: 10 }}
             className="bg-slate-800 border-2 rounded-md"

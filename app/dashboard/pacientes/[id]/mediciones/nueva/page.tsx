@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getDB } from "@/lib/db";
 
@@ -111,9 +110,6 @@ export default async function NuevaMedicionPage(props: {
           </p>
         </div>
 
-        <Button variant="secondary" asChild className="bg-slate-800 border">
-          <Link href={`/dashboard/pacientes/${pacienteId}`}>Volver</Link>
-        </Button>
       </div>
 
       <Card className="mt-6 max-w-2xl">

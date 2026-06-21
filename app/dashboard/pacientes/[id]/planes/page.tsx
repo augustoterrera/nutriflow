@@ -26,7 +26,6 @@ export default async function PlanesPacientePage(props: {
           <p className="text-sm text-muted-foreground">{paciente.nombre_completo} · DNI {paciente.dni}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild><Link href={`/dashboard/pacientes/${pacienteId}`}>Volver</Link></Button>
           <Button asChild><Link href={`/dashboard/pacientes/${pacienteId}/planes/nuevo`}>+ Nuevo plan</Link></Button>
         </div>
       </div>

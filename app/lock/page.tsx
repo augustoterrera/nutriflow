@@ -1,13 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { loginActionServer } from "./actions";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/shared/auth-shell";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 export default function LockPage() {
   const [pin, setPin] = useState("");
@@ -33,7 +38,7 @@ export default function LockPage() {
           window.location.href = "/setup";
           return;
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -101,45 +106,39 @@ export default function LockPage() {
   const attemptsLeft = intentos === null ? null : Math.max(0, 5 - intentos);
 
   return (
-    <div className="min-h-[calc(100vh-0px)] flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Ingresar PIN</CardTitle>
-        </CardHeader>
+    <AuthShell title="Ingresar PIN" description="Ingresá tu PIN para acceder.">
+      <form onSubmit={onSubmit} autoComplete="off">
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="pin">PIN</FieldLabel>
+            <Input
+              id="pin"
+              name="pin"
+              type="password"
+              inputMode="numeric"
+              placeholder="••••"
+              autoComplete="off"
+              autoFocus
+              aria-invalid={!!err}
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+            />
+            {err ? <FieldError>{err}</FieldError> : null}
+            {attemptsLeft !== null ? (
+              <FieldDescription>
+                Intentos restantes: {attemptsLeft}
+                {bloqueadoHasta ? ` — bloqueado: ${blockedRemaining}` : null}
+              </FieldDescription>
+            ) : null}
+          </Field>
 
-        <CardContent>
-          <form onSubmit={onSubmit} autoComplete="off" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pin">PIN</Label>
-              <Input
-                id="pin"
-                name="pin"
-                type="password"
-                inputMode="numeric"
-                placeholder="••••"
-                autoComplete="off"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-              />
-              {err ? (
-                <div className="text-sm text-destructive mt-1">{err}</div>
-              ) : null}
-
-              {attemptsLeft !== null ? (
-                <div className="text-xs text-muted-foreground mt-1">
-                  Intentos restantes: {attemptsLeft}
-                  {bloqueadoHasta ? ` — bloqueado: ${blockedRemaining}` : null}
-                </div>
-              ) : null}
-            </div>
-
-            <Button type="submit" className="w-full bg-slate-700 hover:bg-blue-700" disabled={loading}>
+          <Field>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </Field>
+        </FieldGroup>
+      </form>
+    </AuthShell>
   );
 }
-

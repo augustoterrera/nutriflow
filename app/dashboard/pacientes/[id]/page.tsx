@@ -81,9 +81,6 @@ export default async function PacientePage(props: {
                 </div>
 
                 <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
-                    <Link href="/dashboard/pacientes" style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
-                        Volver
-                    </Link>
                     <Link href={`/dashboard/pacientes/${id}/anamnesis/nueva`} style={{ padding: 8 }} className="bg-slate-800 border-2 rounded-md">
                         Nueva anamnesis
                     </Link>

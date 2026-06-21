@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { crearPacienteAction } from "./actions";
 import { DatePickerSimple } from "@/components/pacientes/Date-picker";
 
@@ -7,13 +6,6 @@ export default function NuevoPacientePage() {
     <div style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}> {/* Aumenté un poco el maxWidth para que luzca mejor en dos columnas */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <h1 style={{ margin: 0 }}>Nuevo paciente</h1>
-        <Link
-          href="/dashboard/pacientes"
-          style={{ marginLeft: "auto" }}
-          className="bg-slate-800 border-2 rounded-md p-2"
-        >
-          Volver
-        </Link>
       </div>
 
       <form
