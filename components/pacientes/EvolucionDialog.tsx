@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 import {
   LineChart,
@@ -52,10 +53,6 @@ function formatFechaPaciente(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-function round1(n: number) {
-  return Number(n.toFixed(1));
-}
-
 function getNum(v: any): number | null {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
@@ -85,11 +82,11 @@ function dataKeyDe(metrica: Metrica) {
   return "imc";
 }
 
-function colorPorDelta(delta: number) {
-  // Para paciente: verde = mejora (baja peso/cintura/imc), rojo = empeora (sube)
-  if (delta < 0) return "#22c55e";
-  if (delta > 0) return "#ef4444";
-  return "#e5e7eb";
+// Para paciente: bajar peso/cintura/imc es mejora (verde), subir es alerta (rojo).
+function claseDelta(delta: number) {
+  if (delta < 0) return "text-success";
+  if (delta > 0) return "text-destructive";
+  return "text-muted-foreground";
 }
 
 function etiquetaCambio(delta: number, metrica: Metrica) {
@@ -143,24 +140,12 @@ function TooltipPaciente(props: any) {
         : String(v);
 
   return (
-    <div
-      style={{
-        background: "rgba(0,0,0,0.85)",
-        border: "1px solid rgba(255,255,255,0.15)",
-        padding: 10,
-        borderRadius: 10,
-        color: "white",
-        fontSize: 12,
-        maxWidth: 220,
-      }}
-    >
-      <div style={{ opacity: 0.85 }}>Fecha</div>
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>
-        {formatFechaPaciente(label)}
-      </div>
+    <div className="bg-popover text-popover-foreground max-w-55 rounded-lg border p-2.5 text-xs shadow-md">
+      <div className="text-muted-foreground">Fecha</div>
+      <div className="mb-1.5 font-bold">{formatFechaPaciente(label)}</div>
 
-      <div style={{ opacity: 0.85 }}>Valor</div>
-      <div style={{ fontWeight: 800, fontSize: 14 }}>
+      <div className="text-muted-foreground">Valor</div>
+      <div className="text-sm font-extrabold">
         {valTxt}
         {unidad ? ` ${unidad}` : ""}
       </div>
@@ -224,7 +209,7 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" size="sm" className="border border-white rounded-md m-2 p-3  hover:bg-white/90 hover:text-black scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+        <Button variant="outline" size="sm" className="m-2">
           Ver gráfico
         </Button>
       </DialogTrigger>
@@ -242,11 +227,8 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
                 key={m}
                 type="button"
                 size="sm"
+                variant={activo ? "default" : "outline"}
                 onClick={() => setMetrica(m)}
-                className={`transition-all duration-200 ${activo
-                    ? "bg-white text-black hover:bg-white/90 scale-105 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    : "bg-transparent text-white border border-white/30 hover:bg-white/10"
-                  }`}
               >
                 {m === "imc" ? "IMC" : m.charAt(0).toUpperCase() + m.slice(1)}
               </Button>
@@ -282,10 +264,7 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
                 Se necesitan 2 mediciones
               </div>
             ) : (
-              <div
-                className="text-base font-semibold mt-1"
-                style={{ color: colorPorDelta(cambioVsAnterior) }}
-              >
+              <div className={cn("text-base font-semibold mt-1", claseDelta(cambioVsAnterior))}>
                 {etiquetaCambio(cambioVsAnterior, metrica)}
               </div>
             )}
@@ -302,10 +281,7 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
             {cambioDesdeInicio == null ? (
               <div className="text-sm text-muted-foreground mt-1">-</div>
             ) : (
-              <div
-                className="text-base font-semibold mt-1"
-                style={{ color: colorPorDelta(cambioDesdeInicio) }}
-              >
+              <div className={cn("text-base font-semibold mt-1", claseDelta(cambioDesdeInicio))}>
                 {etiquetaCambio(cambioDesdeInicio, metrica)}
               </div>
             )}
@@ -331,21 +307,29 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 12, right: 18, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="fecha"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
                   tickFormatter={(v) => formatFechaPaciente(String(v))}
                   minTickGap={18}
+                  stroke="var(--border)"
                 />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip content={<TooltipPaciente unidad={unidad} />} />
+                <YAxis
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                  stroke="var(--border)"
+                />
+                <Tooltip
+                  content={<TooltipPaciente unidad={unidad} />}
+                  cursor={{ stroke: "var(--border)" }}
+                />
 
                 {/* 1 métrica a la vez (MUCHO más claro) */}
                 <Line
                   type="monotone"
                   dataKey={dataKey}
-                  dot={{ r: 4 }}
+                  stroke="var(--chart-1)"
+                  dot={{ r: 4, fill: "var(--chart-1)", stroke: "var(--chart-1)" }}
                   activeDot={{ r: 6 }}
                   strokeWidth={3}
                   connectNulls={false}

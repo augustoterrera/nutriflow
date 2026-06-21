@@ -2,6 +2,19 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getDB } from "@/lib/db";
 
+import { PageShell } from "@/components/shared/page-shell";
+import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspace-header";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 async function eliminarAnamnesisAction(formData: FormData) {
   "use server";
 
@@ -40,7 +53,8 @@ export default async function EliminarAnamnesisPage(props: {
   const db = await getDB();
 
   const paciente = await db.get(
-    `select id, dni, nombre_completo from pacientes where id = ? and activo = 1`,
+    `select id, dni, nombre_completo, fecha_nacimiento, sexo, ocupacion
+     from pacientes where id = ? and activo = 1`,
     [pacienteId]
   );
   if (!paciente) notFound();
@@ -56,86 +70,69 @@ export default async function EliminarAnamnesisPage(props: {
   );
   if (!a) notFound();
 
+  const base = `/dashboard/pacientes/${pacienteId}/anamnesis`;
+
+  const preferencias = [
+    a.frutas_no_gusta ? `Frutas: ${compact(a.frutas_no_gusta)}` : null,
+    a.verduras_no_gusta ? `Verduras: ${compact(a.verduras_no_gusta)}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div style={{ padding: 24, maxWidth: 760 }}>
-      <h1 style={{ margin: 0 }}>Eliminar anamnesis</h1>
-      <div style={{ opacity: 0.75, marginTop: 6 }}>
-        {paciente.nombre_completo} · DNI <b>{paciente.dni}</b>
-      </div>
+    <PageShell>
+      <PacienteWorkspaceHeader paciente={paciente} />
 
-      <div
-        style={{
-          marginTop: 14,
-          padding: 14,
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.12)",
-          background: "rgba(255,255,255,0.03)",
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: 6 }}>Vas a borrar este registro:</div>
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>¿Eliminar esta anamnesis?</CardTitle>
+          <CardDescription>Esta acción no se puede deshacer.</CardDescription>
+        </CardHeader>
 
-        <div style={{ fontSize: 13, opacity: 0.9, display: "grid", gap: 4 }}>
-          <div>
-            <b>Fecha:</b> {a.fecha}
-          </div>
-          <div>
-            <b>Dieta:</b> {labelDieta(a.tipo_dieta)}
-          </div>
-          <div>
-            <b>Agua:</b> {a.consumo_agua ?? "-"}
-          </div>
-          {a.consumo_verduras ? <div><b>Verduras:</b> {a.consumo_verduras}</div> : null}
-          {a.consumo_frutas ? <div><b>Frutas:</b> {a.consumo_frutas}</div> : null}
-          {a.consumo_carnes ? <div><b>Carnes:</b> {a.consumo_carnes}</div> : null}
-          <div>
-            <b>Actividad física:</b> {a.actividad_fisica ?? "-"}
-          </div>
-          {a.consume_suplementos ? (
-            <div><b>Suplementos:</b> {a.suplementos_detalle || "sí"}</div>
-          ) : null}
+        <CardContent>
+          <dl className="bg-muted/30 grid gap-2 rounded-lg border p-4 text-sm">
+            <Dato label="Fecha">
+              <span className="font-medium">{a.fecha}</span>
+            </Dato>
+            <Dato label="Dieta">
+              <Badge variant="secondary">{labelDieta(a.tipo_dieta)}</Badge>
+            </Dato>
+            <Dato label="Agua">{a.consumo_agua ?? "—"}</Dato>
+            <Dato label="Actividad física">{a.actividad_fisica ?? "—"}</Dato>
+            {a.consume_suplementos ? (
+              <Dato label="Suplementos">{a.suplementos_detalle || "Sí"}</Dato>
+            ) : null}
+            {preferencias ? <Dato label="Preferencias">{preferencias}</Dato> : null}
+            {a.observaciones ? (
+              <Dato label="Observaciones">
+                <span className="text-muted-foreground">{a.observaciones}</span>
+              </Dato>
+            ) : null}
+          </dl>
+        </CardContent>
 
-          {(a.frutas_no_gusta || a.verduras_no_gusta) ? (
-            <div style={{ marginTop: 6, opacity: 0.9 }}>
-              <b>Preferencias:</b>{" "}
-              {a.frutas_no_gusta ? <>Frutas: {compact(a.frutas_no_gusta)}. </> : null}
-              {a.verduras_no_gusta ? <>Verduras: {compact(a.verduras_no_gusta)}.</> : null}
-            </div>
-          ) : null}
+        <CardFooter className="gap-2">
+          <form action={eliminarAnamnesisAction}>
+            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
+            <Button type="submit" variant="destructive">
+              Sí, eliminar
+            </Button>
+          </form>
+          <Button variant="outline" asChild>
+            <Link href={base}>Cancelar</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </PageShell>
+  );
+}
 
-          {a.observaciones ? (
-            <div style={{ marginTop: 6, opacity: 0.9 }}>
-              <b>Observaciones:</b> {a.observaciones}
-            </div>
-          ) : null}
-        </div>
-
-        <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
-          Esta acción no se puede deshacer.
-        </div>
-      </div>
-
-      <form action={eliminarAnamnesisAction} style={{ marginTop: 14, display: "flex", gap: 10 }}>
-        <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-        <input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
-
-        <button
-          type="submit"
-          style={{
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "1px solid rgba(239,68,68,0.35)",
-            background: "rgba(239,68,68,0.15)",
-            color: "#ef4444",
-            fontWeight: 700,
-          }}
-        >
-          Eliminar
-        </button>
-
-        <Link href={`/dashboard/pacientes/${pacienteId}/anamnesis`} style={{ padding: "10px 12px" }}>
-          Cancelar
-        </Link>
-      </form>
+function Dato({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[140px_1fr] items-center gap-2">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0">{children}</dd>
     </div>
   );
 }

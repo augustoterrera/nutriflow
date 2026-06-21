@@ -26,7 +26,8 @@
       "mcp__shadcn__get_item_examples_from_registries",
       "Bash(cd /Users/augustoterrera/Proyectos/NutriFlow *)",
       "Bash(grep -nE 'style=\\\\{\\\\{|bg-\\(slate|blue|red|green|gray\\)-[0-9]|border-\\(white|gray\\)|bg-white|rgba\\\\\\(|#[0-9a-fA-F]{3,6}' \"app/dashboard/pacientes/[id]/page.tsx\")",
-      "Bash(grep -nE 'style=\\\\{\\\\{|#[0-9a-fA-F]{3,6}|bg-\\(slate|blue|red|green\\)-[0-9]|border-\\(white|gray\\)|text-black|rgba\\\\\\(' \"app/dashboard/pacientes/[id]/page.tsx\" components/pacientes/RiesgoCardiometabolico.tsx)"
+      "Bash(grep -nE 'style=\\\\{\\\\{|#[0-9a-fA-F]{3,6}|bg-\\(slate|blue|red|green\\)-[0-9]|border-\\(white|gray\\)|text-black|rgba\\\\\\(' \"app/dashboard/pacientes/[id]/page.tsx\" components/pacientes/RiesgoCardiometabolico.tsx)",
+      "Bash(grep -nE \"style=|#[0-9a-fA-F]{3,6}|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-\" components/anamnesis/AnamnesisHistorialTable.tsx \"app/dashboard/pacientes/[id]/anamnesis/page.tsx\")"
     ],
     "additionalDirectories": [
       "/Users/augustoterrera/Proyectos/NutriFlow/app/dashboard/pacientes/[id]"

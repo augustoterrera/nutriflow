@@ -2,6 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getDB } from "@/lib/db";
 
+import { PageShell } from "@/components/shared/page-shell";
+import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspace-header";
+import { MedicionForm } from "@/components/mediciones/MedicionForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 function toNullNumber(v: FormDataEntryValue | null) {
   const s = String(v ?? "").trim().replace(",", ".");
   if (!s) return null;
@@ -72,7 +78,8 @@ export default async function EditarMedicionPage(props: {
   const db = await getDB();
 
   const paciente = await db.get(
-    `select id, dni, nombre_completo from pacientes where id = ? and activo = 1`,
+    `select id, dni, nombre_completo, fecha_nacimiento, sexo, ocupacion
+     from pacientes where id = ? and activo = 1`,
     [pacienteId]
   );
   if (!paciente) notFound();
@@ -86,143 +93,46 @@ export default async function EditarMedicionPage(props: {
   );
   if (!medicion) notFound();
 
+  const base = `/dashboard/pacientes/${pacienteId}/mediciones`;
+
   return (
-    <div style={{ padding: 24, maxWidth: 760 }}>
-      <h1 style={{ margin: 0 }}>Editar medición</h1>
-      <div style={{ opacity: 0.75, marginTop: 6 }}>
-        {paciente.nombre_completo} · DNI <b>{paciente.dni}</b>
-      </div>
+    <PageShell>
+      <PacienteWorkspaceHeader paciente={paciente} />
 
-      <form
-        action={editarMedicionAction}
-        style={{
-          marginTop: 14,
-          padding: 14,
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.12)",
-          background: "rgba(255,255,255,0.03)",
-          display: "grid",
-          gap: 12,
-        }}
-      >
-        <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-        <input type="hidden" name="medicion_id" value={String(medicionId)} />
+      <Card>
+        <CardHeader>
+          <CardTitle>Editar medición</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={editarMedicionAction}>
+            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <input type="hidden" name="medicion_id" value={String(medicionId)} />
 
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Fecha *</label>
-          <input
-            name="fecha"
-            type="date"
-            defaultValue={String(medicion.fecha ?? "")}
-            style={inputStyle}
-            required
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Peso (kg)</label>
-          <input
-            name="peso_kg"
-            inputMode="decimal"
-            defaultValue={medicion.peso_kg ?? ""}
-            placeholder="Ej: 78.5"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Altura (cm)</label>
-          <input
-            name="altura_cm"
-            inputMode="decimal"
-            defaultValue={medicion.altura_cm ?? ""}
-            placeholder="Ej: 175"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Cintura (cm)</label>
-          <input
-            name="cintura_cm"
-            inputMode="decimal"
-            defaultValue={medicion.cintura_cm ?? ""}
-            placeholder="Ej: 92"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Cadera (cm)</label>
-          <input name="cadera_cm" inputMode="decimal" defaultValue={medicion.cadera_cm ?? ""} placeholder="Ej: 102" style={inputStyle} />
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Cuello (cm)</label>
-          <input name="cuello_cm" inputMode="decimal" defaultValue={medicion.cuello_cm ?? ""} placeholder="Ej: 38" style={inputStyle} />
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={{ opacity: 0.8, fontSize: 13 }}>Grasa (%)</label>
-            <input name="grasa_pct" inputMode="decimal" defaultValue={medicion.grasa_pct ?? ""} placeholder="Ej: 22" style={inputStyle} />
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={{ opacity: 0.8, fontSize: 13 }}>Músculo (%)</label>
-            <input name="musculo_pct" inputMode="decimal" defaultValue={medicion.musculo_pct ?? ""} placeholder="Ej: 38" style={inputStyle} />
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={{ opacity: 0.8, fontSize: 13 }}>Brazo (cm)</label>
-            <input name="brazo_cm" inputMode="decimal" defaultValue={medicion.brazo_cm ?? ""} placeholder="Ej: 32" style={inputStyle} />
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <label style={{ opacity: 0.8, fontSize: 13 }}>Muñeca (cm)</label>
-            <input name="muneca_cm" inputMode="decimal" defaultValue={medicion.muneca_cm ?? ""} placeholder="Ej: 16" style={inputStyle} />
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ opacity: 0.8, fontSize: 13 }}>Observaciones</label>
-          <textarea
-            name="observaciones"
-            rows={4}
-            defaultValue={medicion.observaciones ?? ""}
-            placeholder="Notas de la medición..."
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-          <button
-            type="submit"
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(255,255,255,0.06)",
-              fontWeight: 700,
-            }}
-          >
-            Guardar cambios
-          </button>
-
-          <Link href={`/dashboard/pacientes/${pacienteId}/mediciones`} style={{ padding: "10px 12px" }}>
-            Cancelar
-          </Link>
-        </div>
-
-        <div style={{ fontSize: 12, opacity: 0.7 }}>
-          Tip: podés usar coma o punto en decimales (ej: 78,5).
-        </div>
-      </form>
-    </div>
+            <MedicionForm
+              defaultValues={{
+                fecha: String(medicion.fecha ?? "").slice(0, 10),
+                peso_kg: medicion.peso_kg,
+                altura_cm: medicion.altura_cm,
+                cintura_cm: medicion.cintura_cm,
+                cadera_cm: medicion.cadera_cm,
+                cuello_cm: medicion.cuello_cm,
+                grasa_pct: medicion.grasa_pct,
+                musculo_pct: medicion.musculo_pct,
+                brazo_cm: medicion.brazo_cm,
+                muneca_cm: medicion.muneca_cm,
+                observaciones: medicion.observaciones,
+              }}
+            >
+              <div className="flex gap-2">
+                <Button type="submit">Guardar cambios</Button>
+                <Button variant="outline" asChild>
+                  <Link href={base}>Cancelar</Link>
+                </Button>
+              </div>
+            </MedicionForm>
+          </form>
+        </CardContent>
+      </Card>
+    </PageShell>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(255,255,255,0.03)",
-  outline: "none",
-};
