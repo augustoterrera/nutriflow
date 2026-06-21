@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { PageShell } from "@/components/shared/page-shell";
+import { PageHeader } from "@/components/shared/page-header";
 import {
   Card,
   CardHeader,
@@ -26,9 +27,13 @@ export default function Error({
 
   return (
     <PageShell width="form">
+      <PageHeader
+        title="No pudimos crear el paciente"
+        description="Revisá el error e intentá nuevamente."
+      />
       <Card>
         <CardHeader>
-          <CardTitle>Ocurrió un error</CardTitle>
+          <CardTitle>Detalle del error</CardTitle>
           <CardDescription className="text-destructive">
             {error.message || "No se pudo crear el paciente."}
           </CardDescription>

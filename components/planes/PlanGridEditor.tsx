@@ -242,6 +242,7 @@ export function PlanGridEditor(props: {
           <Button type="button" variant="outline" asChild>
             <Link
               target="_blank"
+              rel="noopener noreferrer"
               href={`/dashboard/pacientes/${props.pacienteId}/planes/${props.planId}/imprimir`}
             >
               Exportar PDF

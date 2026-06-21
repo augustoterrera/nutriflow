@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 async function eliminarMedicionAction(formData: FormData) {
   "use server";
@@ -110,8 +111,8 @@ export default async function EliminarMedicionPage(props: {
 
         <CardFooter className="gap-2">
           <form action={eliminarMedicionAction}>
-            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-            <input type="hidden" name="medicion_id" value={String(medicionId)} />
+            <Input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <Input type="hidden" name="medicion_id" value={String(medicionId)} />
             <Button type="submit" variant="destructive">
               Sí, eliminar
             </Button>

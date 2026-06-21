@@ -60,14 +60,18 @@ export async function crearAlimentoCustom(datos: AlimentoInput) {
   const nombre = datos.nombre.trim();
   if (!nombre) throw new Error("El nombre del alimento es obligatorio.");
 
-  const valores = [
+  const valoresNutricionales = [
     Number(datos.kcal || 0),
     Number(datos.prot || 0),
     Number(datos.cho || 0),
     Number(datos.gras || 0),
     Number(datos.fibra || 0),
-    datos.grupo?.trim() || "Custom",
   ] as const;
+  const valores = [...valoresNutricionales, datos.grupo?.trim() || "Custom"] as const;
+
+  if (valoresNutricionales.some((valor) => !Number.isFinite(valor) || valor < 0)) {
+    throw new Error("Los valores nutricionales deben ser números mayores o iguales a cero.");
+  }
 
   const existente = await db.get<{ id: number; es_custom: number }>(
     `select id, es_custom from alimentos where lower(nombre) = lower(?)`,

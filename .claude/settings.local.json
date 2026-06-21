@@ -38,7 +38,9 @@
       "Bash(sqlite3 -header -column data/tomi_nutri.sqlite 'select id, paciente_id, nombre, fecha from planes order by id;')",
       "Bash(pnpm db:migrate)",
       "Bash(grep -nE \"style=|#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|border-white|bg-black|bg-slate-|bg-blue-|bg-red-|text-black\" components/planes/PlanGridEditor.tsx)",
-      "Bash(grep -nE \"#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|gradient|from-\\\\[|to-\\\\[| style=\" \"app/dashboard/pacientes/[id]/planes/[pid]/imprimir/page.tsx\")"
+      "Bash(grep -nE \"#[0-9a-fA-F]{3,6}\\\\b|rgba\\\\\\(|gradient|from-\\\\[|to-\\\\[| style=\" \"app/dashboard/pacientes/[id]/planes/[pid]/imprimir/page.tsx\")",
+      "Bash(pnpm test *)",
+      "Bash(NEXT_TELEMETRY_DISABLED=1 pnpm build)"
     ],
     "additionalDirectories": [
       "/Users/augustoterrera/Proyectos/NutriFlow/app/dashboard/pacientes/[id]"

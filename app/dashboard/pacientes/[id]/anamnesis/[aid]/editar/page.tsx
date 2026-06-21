@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Normaliza a CSV plano ("manzana, banana"), el mismo formato que usa "nueva anamnesis".
 // Acepta JSON viejo ('["a","b"]') de registros editados con la versión anterior.
@@ -155,8 +156,8 @@ export default async function EditarAnamnesisPage(props: {
         </CardHeader>
         <CardContent>
           <form action={editarAnamnesisAction}>
-            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-            <input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
+            <Input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <Input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
 
             <AnamnesisForm
               defaultValues={{

@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 
@@ -48,6 +49,11 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  function closeMobileMenu() {
+    if (isMobile) setOpenMobile(false)
+  }
 
   function isItemActive(url: string) {
     if (url === "/dashboard") return pathname === url
@@ -55,12 +61,12 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="print:hidden">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip="NutriFlow" asChild>
-              <Link href="/dashboard">
+              <Link href="/dashboard" onClick={closeMobileMenu}>
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <HeartPulse className="size-4" />
                 </div>
@@ -86,7 +92,11 @@ export function AppSidebar() {
                     isActive={isItemActive(item.url)}
                     tooltip={item.title}
                   >
-                    <Link href={item.url}>
+                    <Link
+                      href={item.url}
+                      aria-current={isItemActive(item.url) ? "page" : undefined}
+                      onClick={closeMobileMenu}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -105,7 +115,7 @@ export function AppSidebar() {
             className="w-full group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
             asChild
           >
-            <Link href="/logout">
+            <Link href="/logout" onClick={closeMobileMenu}>
               <LogOut />
               <span className="group-data-[collapsible=icon]:hidden">
                 Cerrar sesión

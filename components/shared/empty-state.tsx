@@ -31,7 +31,7 @@ function EmptyState({
     >
       {Icon ? (
         <div className="bg-muted text-muted-foreground flex size-11 items-center justify-center rounded-full">
-          <Icon className="size-5" />
+          <Icon className="size-5" aria-hidden="true" />
         </div>
       ) : null}
       <div className="space-y-1">

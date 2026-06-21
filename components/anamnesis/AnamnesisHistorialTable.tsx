@@ -40,8 +40,8 @@ export type AnamnesisRow = {
 }
 
 /**
- * Tabla del historial de anamnesis. Muestra solo lo principal y, al hacer clic
- * en una fila (o en el icono de ver), abre un modal con el detalle completo.
+ * Tabla del historial de anamnesis. Muestra solo lo principal y permite abrir
+ * el detalle con el control accesible de cada fila.
  */
 export function AnamnesisHistorialTable({
   registros,
@@ -73,17 +73,8 @@ export function AnamnesisHistorialTable({
             return (
               <TableRow
                 key={registro.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Ver detalle de la anamnesis del ${fechaLabel}`}
                 className="cursor-pointer"
                 onClick={() => setSeleccionado(registro)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    setSeleccionado(registro)
-                  }
-                }}
               >
                 <TableCell className="px-4">
                   <div className="font-medium">{fechaLabel}</div>

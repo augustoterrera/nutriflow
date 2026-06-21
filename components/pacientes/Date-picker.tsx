@@ -4,6 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Field } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { es } from "date-fns/locale"
 
@@ -43,7 +44,7 @@ export function DatePickerSimple({
 
   return (
     <Field>
-      <input type="hidden" name={name} value={value} />
+      <Input type="hidden" name={name} value={value} />
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -74,7 +75,7 @@ export function DatePickerSimple({
             endMonth={new Date(añoActual, 11)}
             classNames={{
               dropdown:
-                "border-input bg-transparent rounded-md p-0.5 text-xs outline-none focus:ring-0 cursor-pointer max-w-[80px]",
+                "border-input bg-transparent rounded-md p-0.5 text-xs outline-none cursor-pointer max-w-[80px] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
               caption_label: "hidden h-20",
               dropdown_year: "ml-2", // Un pequeño margen para separar mes de año
             }}

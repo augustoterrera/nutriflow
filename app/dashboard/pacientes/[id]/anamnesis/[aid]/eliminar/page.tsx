@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 async function eliminarAnamnesisAction(formData: FormData) {
   "use server";
@@ -113,8 +114,8 @@ export default async function EliminarAnamnesisPage(props: {
 
         <CardFooter className="gap-2">
           <form action={eliminarAnamnesisAction}>
-            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-            <input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
+            <Input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <Input type="hidden" name="anamnesis_id" value={String(anamnesisId)} />
             <Button type="submit" variant="destructive">
               Sí, eliminar
             </Button>

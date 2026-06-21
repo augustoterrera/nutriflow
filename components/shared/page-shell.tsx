@@ -11,7 +11,7 @@ const widthMap = {
 
 /**
  * Contenedor estándar de página: centra el contenido, aplica padding y ancho
- * máximo consistente. Reemplaza los `style={{ padding: 24 }}` sueltos.
+ * máximo consistente. Reemplaza los paddings inline sueltos.
  */
 function PageShell({
   className,

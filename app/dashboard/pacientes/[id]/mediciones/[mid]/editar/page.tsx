@@ -7,6 +7,7 @@ import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspa
 import { MedicionForm } from "@/components/mediciones/MedicionForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function toNullNumber(v: FormDataEntryValue | null) {
   const s = String(v ?? "").trim().replace(",", ".");
@@ -105,8 +106,8 @@ export default async function EditarMedicionPage(props: {
         </CardHeader>
         <CardContent>
           <form action={editarMedicionAction}>
-            <input type="hidden" name="paciente_id" value={String(pacienteId)} />
-            <input type="hidden" name="medicion_id" value={String(medicionId)} />
+            <Input type="hidden" name="paciente_id" value={String(pacienteId)} />
+            <Input type="hidden" name="medicion_id" value={String(medicionId)} />
 
             <MedicionForm
               defaultValues={{

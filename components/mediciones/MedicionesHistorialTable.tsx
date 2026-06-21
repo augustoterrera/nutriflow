@@ -51,8 +51,8 @@ type Fila = {
 }
 
 /**
- * Tabla del historial de mediciones. Muestra solo lo principal y, al hacer clic
- * en una fila (o en el icono de ver), abre un modal con el detalle completo.
+ * Tabla del historial de mediciones. Muestra solo lo principal y permite abrir
+ * el detalle con el control accesible de cada fila.
  */
 export function MedicionesHistorialTable({
   registros,
@@ -108,17 +108,8 @@ export function MedicionesHistorialTable({
             return (
               <TableRow
                 key={registro.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Ver detalle de la medición del ${fechaLabel}`}
                 className="cursor-pointer"
                 onClick={() => setSeleccionada(fila)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    setSeleccionada(fila)
-                  }
-                }}
               >
                 <TableCell className="px-4">
                   <div className="font-medium">{fechaLabel}</div>

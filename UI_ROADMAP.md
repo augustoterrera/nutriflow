@@ -809,40 +809,71 @@ UI responsive/accesible, migración/lint/tests/build verdes.
 
 ---
 
-### Fase 10 — Alimentos (banco) + Papelera
+### Fase 10 — Alimentos (banco) + Papelera ✅ (HECHA — validada)
 **Objetivo.** Banco de alimentos y papelera consistentes.
 
-**Archivos.** `app/dashboard/alimentos/page.tsx`; `app/dashboard/papelera/page.tsx`,
-`app/dashboard/papelera/PapeleraClient.tsx`.
+> **Cierre 10.1 — Alimentos (2026-06-21, durante el QA final).** La pantalla se migró a
+> `PageShell`/`PageHeader`, buscador accesible, filtros con estado anunciado, alta con `Field`/`Input`, vistas
+> Banco y Tabla con `Badge`, `Table` y `EmptyState`. Se eliminaron el HTML crudo y los labels sin asociación;
+> los valores nutricionales negativos ahora se rechazan también en servidor. Datos siempre leídos desde la
+> tabla `alimentos`.
 
-**Estado actual / problemas.** `alimentos` con `<input>/<table>` crudos; `PapeleraClient` con `style`/`rgba` y
-acciones a mano.
+> **Avance 10.2 — Papelera completada y validada (2026-06-21).** `pnpm lint` 0 errores (1 warning
+> preexistente fuera de la sección) · **17 tests** aprobados · `pnpm build` verde. `PapeleraClient.tsx` fue
+> eliminado: la lista ahora se renderiza en servidor con `PageShell`/`PageHeader`, `Table`, `EmptyState` y
+> feedback de las acciones. Restaurar usa un submit con estado pendiente. El borrado irreversible tiene una
+> ruta de confirmación propia (`papelera/[id]/eliminar`) que muestra cuántas anamnesis, mediciones,
+> evaluaciones energéticas y planes serán eliminados. Ambas acciones validan que el paciente siga desactivado.
+> Grep de anti-patrones limpio en `app/dashboard/papelera`.
+
+**Archivos.** `app/dashboard/alimentos/page.tsx`; `app/dashboard/papelera/page.tsx`,
+`app/dashboard/papelera/actions.ts`, `app/dashboard/papelera/[id]/eliminar/page.tsx`,
+`components/papelera/papelera-submit-button.tsx`.
+
+**Estado inicial resuelto.** `alimentos` tenía `<input>/<table>` crudos; `PapeleraClient` tenía `style`/`rgba`
+y acciones a mano.
 
 **Pasos.**
-1. **Alimentos**: `PageHeader` + buscador (§4.5) + filtros por categoría con `Badge`/botones; listado en `Table`
+1. [x] **Alimentos**: `PageHeader` + buscador (§4.5) + filtros por categoría con `Badge`/botones; listado en `Table`
    (o cards). Datos siempre desde la tabla `alimentos` (no hardcodear).
-2. **Papelera**: `Table` con acciones Restaurar (`variant="outline"`) / Eliminar (`variant="destructive"`),
+2. [x] **Papelera**: `Table` con acciones Restaurar (`variant="outline"`) / Eliminar (`variant="destructive"`),
    confirmaciones (§4.6) y `EmptyState`. Quitar `style`/`rgba`.
 
 **DoD.** §6 + build verde.
 
 ---
 
-### Fase 11 — QA visual, accesibilidad y consistencia final
+### Fase 11 — QA visual, accesibilidad y consistencia final ✅ (HECHA — validada)
 **Objetivo.** Cerrar la coherencia global.
 
+> **Validación final (2026-06-21).** `pnpm lint` sin errores ni warnings · **17 tests** aprobados ·
+> `pnpm build` verde. El convenio obsoleto `middleware.ts` se migró a `proxy.ts`; el build ya no emite esa
+> advertencia. Greps globales: solo quedan (a) el `gridTemplateColumns` dinámico y documentado del editor de
+> planes, y (b) colores neutros + `<table>` semántica documentados y exclusivos del documento imprimible.
+
+**Cierre ejecutado.**
+- Accesibilidad/teclado: enlace “Saltar al contenido”, foco visible del date picker, `aria-current` en sidebar
+  y filtros, sidebar móvil cerrable, labels asociados, textos internos en español, diálogos descriptos,
+  filas de historial con controles accesibles, capa accesible en Recharts y respeto de
+  `prefers-reduced-motion`.
+- Consistencia: títulos `<h1>` reales en acceso/error/confirmaciones, Alimentos migrado al sistema global,
+  `Alert`/`Button`/`Badge`/overlays llevados a tokens y metadata base de la app.
+- Impresión: sidebar/header/botones ocultos en papel, sin `<main>` anidado, título y referencia del plan,
+  grilla apaisada con `caption` y scopes de filas/columnas. La escala neutral se conserva intencionalmente
+  para representar papel blanco con contraste estable.
+
 **Pasos.**
-1. Barrido global — estos greps deben dar **vacío** (o solo casos justificados con comentario):
+1. [x] Barrido global — estos greps deben dar **vacío** (o solo casos justificados con comentario):
    ```bash
    grep -rnE 'style=\{\{' app components | grep -v node_modules
    grep -rnE 'bg-(slate|blue|red|green|gray|zinc|neutral)-[0-9]|border-(white|gray)|text-white|bg-black|rgba\(' app | grep -v node_modules
    grep -rnE '<(input|select|textarea|table|button)[ >]' app | grep -v node_modules
    ```
    (En `components/ui/*` algunos `text-white` dentro de variantes shadcn son legítimos.)
-2. Revisión de **foco/teclado** (tabular toda la app), **contraste** y `aria-*`.
-3. Pasada de **spacing/tipografía**: que todas las secciones se vean "de la misma familia".
-4. Revisar **impresión** de planes en papel.
-5. Cierre: `pnpm lint` + `pnpm build` verdes.
+2. [x] Revisión de **foco/teclado**, **contraste** y `aria-*`.
+3. [x] Pasada de **spacing/tipografía**: todas las secciones usan el mismo shell y jerarquía.
+4. [x] Revisar **impresión** de planes en papel.
+5. [x] Cierre: `pnpm lint` + `pnpm build` verdes.
 
 **DoD.** Los 3 greps sin hallazgos no justificados. Lint/build verdes.
 

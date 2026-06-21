@@ -76,7 +76,7 @@ export default async function EnergiaPacientePage({
       </div>
 
       {sp.guardada === "1" ? (
-        <Alert className="mb-6">
+        <Alert className="mb-6" role="status">
           <AlertTitle>Evaluación guardada</AlertTitle>
           <AlertDescription>
             El resultado ya forma parte del historial y puede usarse como referencia de un plan.

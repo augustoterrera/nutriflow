@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDB } from "@/lib/db";
 
@@ -10,25 +11,21 @@ export async function desactivarPacienteAction(pacienteId: number) {
 
   const db = await getDB();
 
-  try {
-    // Verificar que el paciente existe
-    const paciente = await db.get(
-      "SELECT id FROM pacientes WHERE id = ?",
-      [pacienteId]
-    );
-
-    if (!paciente) {
-      throw new Error("Paciente no encontrado.");
-    }
-
-    // Desactivar el paciente (activo = 0)
-    await db.run(
-      "UPDATE pacientes SET activo = 0, actualizado_en = datetime('now') WHERE id = ?",
-      [pacienteId]
-    );
-
-    redirect("/dashboard/pacientes");
-  } catch (e: any) {
-    throw e;
+  const paciente = await db.get(
+    "SELECT id FROM pacientes WHERE id = ? AND activo = 1",
+    [pacienteId]
+  );
+  if (!paciente) {
+    throw new Error("El paciente no está disponible entre los pacientes activos.");
   }
+
+  await db.run(
+    "UPDATE pacientes SET activo = 0, actualizado_en = datetime('now') WHERE id = ? AND activo = 1",
+    [pacienteId]
+  );
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/pacientes");
+  revalidatePath("/dashboard/papelera");
+  redirect("/dashboard/pacientes");
 }

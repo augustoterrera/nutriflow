@@ -37,16 +37,24 @@ export default async function ImprimirPlanPage(props: {
 
   return (
     // Documento claro independiente del tema oscuro de la app. Escala neutral + impresión apaisada.
-    <main className="min-h-screen bg-neutral-100 p-6 text-neutral-900 print:bg-white print:p-0">
+    <div className="min-h-screen bg-neutral-100 p-6 text-neutral-900 print:min-h-0 print:bg-white print:p-0">
       <style>{`@media print { @page { size: landscape; margin: 10mm; } }`}</style>
 
       <div className="mx-auto max-w-6xl">
         <PrintButton />
 
-        <section className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-8 shadow print:border-0 print:p-0 print:shadow-none">
+        <section
+          aria-labelledby="titulo-plan-impreso"
+          className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-8 shadow print:border-0 print:p-0 print:shadow-none"
+        >
           <header className="mb-6">
-            <h1 className="text-center text-2xl font-bold tracking-wide">PLAN ALIMENTARIO</h1>
+            <h1 id="titulo-plan-impreso" className="text-center text-2xl font-bold tracking-wide">
+              PLAN ALIMENTARIO
+            </h1>
             <h2 className="mt-4 text-lg font-semibold">{paciente.nombre_completo}</h2>
+            <p className="text-sm text-neutral-600">
+              {plan.nombre}{plan.fecha ? ` · ${formatFecha(plan.fecha)}` : ""}
+            </p>
 
             {datosCabecera.length ? (
               <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 text-sm text-neutral-700">
@@ -91,12 +99,15 @@ export default async function ImprimirPlanPage(props: {
                   {plan.semanas.length > 1 ? (
                     <h3 className="mb-2 text-base font-semibold">{semana.titulo}</h3>
                   ) : null}
+                  {/* Tabla HTML intencional: preserva semántica tabular y distribución
+                      estable entre navegadores al imprimir la grilla en papel. */}
                   <table className="w-full table-fixed border-collapse text-xs">
+                    <caption className="sr-only">{semana.titulo}</caption>
                     <thead>
                       <tr className="bg-neutral-100 text-left">
-                        <th className="w-28 border border-neutral-300 p-2 font-semibold">Alimentación</th>
+                        <th scope="col" className="w-28 border border-neutral-300 p-2 font-semibold">Alimentación</th>
                         {dias.map((d) => (
-                          <th key={d} className="border border-neutral-300 p-2 font-semibold">
+                          <th scope="col" key={d} className="border border-neutral-300 p-2 font-semibold">
                             DÍA {d + 1}
                           </th>
                         ))}
@@ -105,7 +116,7 @@ export default async function ImprimirPlanPage(props: {
                     <tbody>
                       {ORDEN_GRILLA.map((tipo) => (
                         <tr key={tipo} className="align-top">
-                          <th className="border border-neutral-300 bg-neutral-50 p-2 text-left text-xs font-semibold text-neutral-600 uppercase">
+                          <th scope="row" className="border border-neutral-300 bg-neutral-50 p-2 text-left text-xs font-semibold text-neutral-600 uppercase">
                             {LABEL_COMIDA[tipo]}
                           </th>
                           {dias.map((d) => (
@@ -127,7 +138,7 @@ export default async function ImprimirPlanPage(props: {
           </footer>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 

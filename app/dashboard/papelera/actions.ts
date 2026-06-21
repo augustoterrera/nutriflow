@@ -1,40 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
 import { getDB } from "@/lib/db";
-
-export type PacienteDesactivado = {
-  id: number;
-  dni: string;
-  nombre_completo: string;
-  sexo: string | null;
-  fecha_nacimiento: string | null;
-  telefono: string | null;
-  email: string | null;
-  direccion: string | null;
-  estado_civil: string | null;
-  ocupacion: string | null;
-  notas: string | null;
-  activo: number;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export async function obtenerPacientesDesactivadosAction(): Promise<
-  PacienteDesactivado[]
-> {
-  const db = await getDB();
-  const pacientes = await db.all(
-    `SELECT 
-       id, dni, nombre_completo, sexo, fecha_nacimiento,
-       telefono, email, direccion, estado_civil, ocupacion, notas, activo,
-       creado_en, actualizado_en
-     FROM pacientes
-     WHERE activo = 0
-     ORDER BY actualizado_en DESC`
-  );
-
-  return pacientes || [];
-}
 
 export async function activarPacienteAction(pacienteId: number) {
   if (!Number.isFinite(pacienteId) || pacienteId <= 0) {
@@ -43,25 +12,22 @@ export async function activarPacienteAction(pacienteId: number) {
 
   const db = await getDB();
 
-  try {
-    const paciente = await db.get(
-      "SELECT id FROM pacientes WHERE id = ?",
-      [pacienteId]
-    );
-
-    if (!paciente) {
-      throw new Error("Paciente no encontrado.");
-    }
-
-    await db.run(
-      "UPDATE pacientes SET activo = 1, actualizado_en = datetime('now') WHERE id = ?",
-      [pacienteId]
-    );
-
-    return { success: true };
-  } catch (e: any) {
-    throw e;
+  const paciente = await db.get(
+    "SELECT id FROM pacientes WHERE id = ? AND activo = 0",
+    [pacienteId]
+  );
+  if (!paciente) {
+    throw new Error("El paciente no está disponible en la papelera.");
   }
+
+  await db.run(
+    "UPDATE pacientes SET activo = 1, actualizado_en = datetime('now') WHERE id = ? AND activo = 0",
+    [pacienteId]
+  );
+
+  revalidatePath("/dashboard/pacientes");
+  revalidatePath("/dashboard/papelera");
+  redirect("/dashboard/papelera?restaurado=1");
 }
 
 export async function borrarPacienteDefinitivamenteAction(pacienteId: number) {
@@ -71,21 +37,19 @@ export async function borrarPacienteDefinitivamenteAction(pacienteId: number) {
 
   const db = await getDB();
 
-  try {
-    const paciente = await db.get(
-      "SELECT id FROM pacientes WHERE id = ?",
-      [pacienteId]
-    );
-
-    if (!paciente) {
-      throw new Error("Paciente no encontrado.");
-    }
-
-    // Al borrar, también se borran anamnesis, mediciones y planes por FOREIGN KEY CASCADE
-    await db.run("DELETE FROM pacientes WHERE id = ?", [pacienteId]);
-
-    return { success: true };
-  } catch (e: any) {
-    throw e;
+  const paciente = await db.get(
+    "SELECT id FROM pacientes WHERE id = ? AND activo = 0",
+    [pacienteId]
+  );
+  if (!paciente) {
+    throw new Error("El paciente no está disponible en la papelera.");
   }
+
+  // Las claves foráneas eliminan también anamnesis, mediciones, evaluaciones
+  // energéticas y planes. La condición activo = 0 impide borrar un paciente activo.
+  await db.run("DELETE FROM pacientes WHERE id = ? AND activo = 0", [pacienteId]);
+
+  revalidatePath("/dashboard/pacientes");
+  revalidatePath("/dashboard/papelera");
+  redirect("/dashboard/papelera?eliminado=1");
 }

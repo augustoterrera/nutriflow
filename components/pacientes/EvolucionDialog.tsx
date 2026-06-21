@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -217,9 +218,12 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gráfico de evolución</DialogTitle>
+          <DialogDescription>
+            Compará peso, cintura e IMC entre las mediciones registradas.
+          </DialogDescription>
         </DialogHeader>
         {/* Selector de métricas */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Métrica del gráfico">
           {(["peso", "cintura", "imc"] as Metrica[]).map((m) => {
             const activo = metrica === m;
             return (
@@ -306,7 +310,11 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 12, right: 18, left: 0, bottom: 0 }}>
+              <LineChart
+                accessibilityLayer
+                data={data}
+                margin={{ top: 12, right: 18, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="fecha"
@@ -339,9 +347,8 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
           )}
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          Consejo: si querés que sea aún más “paciente-friendly”, podemos cambiar el eje X para mostrar
-          menos fechas (ej. 1 cada 2/3 mediciones) o agregar marcas “Consulta 1, 2, 3”.
+        <div className="text-muted-foreground text-xs">
+          Los cambios se calculan con los registros disponibles y deben interpretarse junto con la evaluación clínica.
         </div>
       </DialogContent>
     </Dialog>
