@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getDB } from "@/lib/db";
 
 type EditPacienteInput = {
@@ -21,7 +22,7 @@ function limpiarNumeros(s: string) {
   return s.replace(/\D/g, "");
 }
 
-export async function editarPacienteAction(input: EditPacienteInput) {
+async function actualizarPaciente(input: EditPacienteInput) {
   const dni = limpiarNumeros(input.dni);
   const nombre = input.nombre_completo.trim();
 
@@ -98,7 +99,6 @@ export async function editarPacienteAction(input: EditPacienteInput) {
       ]
     );
 
-    redirect(`/dashboard/pacientes/${input.paciente_id}`);
   } catch (e: any) {
     const msg = String(e?.message ?? "");
     if (msg.includes("UNIQUE") && msg.includes("pacientes.dni")) {
@@ -106,6 +106,19 @@ export async function editarPacienteAction(input: EditPacienteInput) {
     }
     throw e;
   }
+}
+
+export async function editarPacienteAction(input: EditPacienteInput) {
+  await actualizarPaciente(input);
+  revalidatePath(`/dashboard/pacientes/${input.paciente_id}`);
+  redirect(`/dashboard/pacientes/${input.paciente_id}`);
+}
+
+export async function guardarFichaPacienteAction(input: EditPacienteInput) {
+  await actualizarPaciente(input);
+  revalidatePath(`/dashboard/pacientes/${input.paciente_id}`);
+  revalidatePath(`/dashboard/pacientes/${input.paciente_id}/ficha`);
+  return { ok: true };
 }
 
 export async function obtenerPacienteAction(pacienteId: number) {

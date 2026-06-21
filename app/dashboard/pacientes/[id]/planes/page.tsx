@@ -1,59 +1,129 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getDB } from "@/lib/db";
-import { listarPlanesDePaciente } from "@/lib/planes";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { ChevronRight, NotebookTabs, Plus } from "lucide-react"
 
-export default async function PlanesPacientePage(props: {
-  params: Promise<{ id: string }>;
+import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspace-header"
+import { EmptyState } from "@/components/shared/empty-state"
+import { PageShell } from "@/components/shared/page-shell"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { getDB } from "@/lib/db"
+import { listarPlanesDePaciente } from "@/lib/planes"
+
+type PlanResumen = {
+  id: number
+  nombre: string
+  fecha: string | null
+  total_kcal: number
+}
+
+export default async function PlanesPacientePage({
+  params,
+}: {
+  params: Promise<{ id: string }>
 }) {
-  const { id: idStr } = await props.params;
-  const pacienteId = Number(idStr);
-  if (!Number.isFinite(pacienteId)) notFound();
+  const { id: idStr } = await params
+  const pacienteId = Number(idStr)
+  if (!Number.isFinite(pacienteId)) notFound()
 
-  const db = await getDB();
-  const paciente = await db.get(`select id, nombre_completo, dni from pacientes where id = ? and activo = 1`, [pacienteId]);
-  if (!paciente) notFound();
+  const db = await getDB()
+  const paciente = await db.get(
+    `select id, dni, nombre_completo, fecha_nacimiento, sexo, ocupacion
+     from pacientes
+     where id = ? and activo = 1`,
+    [pacienteId]
+  )
+  if (!paciente) notFound()
 
-  const planes = await listarPlanesDePaciente(pacienteId);
+  const planes = (await listarPlanesDePaciente(pacienteId)) as PlanResumen[]
+  const baseHref = `/dashboard/pacientes/${pacienteId}/planes`
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Planes</h1>
-          <p className="text-sm text-muted-foreground">{paciente.nombre_completo} · DNI {paciente.dni}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild><Link href={`/dashboard/pacientes/${pacienteId}/planes/nuevo`}>+ Nuevo plan</Link></Button>
-        </div>
-      </div>
+    <PageShell>
+      <PacienteWorkspaceHeader paciente={paciente} />
 
-      {planes.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Todavía no hay planes cargados.</p>
-            <Button className="mt-4" asChild><Link href={`/dashboard/pacientes/${pacienteId}/planes/nuevo`}>Crear primer plan</Link></Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {planes.map((plan: any) => (
-            <Link key={plan.id} href={`/dashboard/pacientes/${pacienteId}/planes/${plan.id}`}>
-              <Card className="h-full transition hover:bg-accent">
-                <CardHeader>
-                  <CardTitle>{plan.nombre}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  <div>{plan.fecha}</div>
-                  <div className="mt-2 text-2xl font-semibold text-foreground">{Math.round(plan.total_kcal)} kcal</div>
-                </CardContent>
-              </Card>
+      <section aria-labelledby="planes-title">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="planes-title" className="text-lg font-semibold">
+              Planes alimentarios
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {planes.length} {planes.length === 1 ? "plan creado" : "planes creados"}
+            </p>
+          </div>
+          <Button asChild>
+            <Link href={`${baseHref}/nuevo`}>
+              <Plus />
+              Nuevo plan
             </Link>
-          ))}
+          </Button>
         </div>
-      )}
-    </div>
-  );
+
+        {planes.length === 0 ? (
+          <EmptyState
+            icon={NotebookTabs}
+            title="Todavía no hay planes"
+            description={`Creá el primer plan alimentario de ${primerNombre(paciente.nombre_completo)}.`}
+            action={
+              <Button asChild>
+                <Link href={`${baseHref}/nuevo`}>Crear primer plan</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {planes.map((plan) => (
+              <Link
+                key={plan.id}
+                href={`${baseHref}/${plan.id}`}
+                className="focus-visible:ring-ring/50 rounded-xl focus-visible:ring-3 focus-visible:outline-none"
+              >
+                <Card className="hover:bg-accent/40 h-full transition-colors">
+                  <CardHeader>
+                    <CardTitle>{plan.nombre}</CardTitle>
+                    <CardDescription>{formatFecha(plan.fecha)}</CardDescription>
+                    <CardAction>
+                      <ChevronRight className="text-muted-foreground size-4" />
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-semibold">
+                      {Math.round(Number(plan.total_kcal ?? 0))} kcal
+                    </div>
+                    <p className="text-muted-foreground mt-1 text-sm">Energía total del plan</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </PageShell>
+  )
+}
+
+function primerNombre(nombre: string) {
+  return String(nombre).trim().split(/\s+/)[0] || "este paciente"
+}
+
+function formatFecha(value: string | null) {
+  if (!value) return "Sin fecha"
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.slice(0, 10))
+  if (!match) return value
+  const [, year, month, day] = match
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date).replaceAll(".", "")
 }

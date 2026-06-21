@@ -38,7 +38,7 @@ export function DatePickerSimple({
   const value = date ? toISODate(date) : ""
 
   return (
-    <Field className="w-44 border border-white rounded-md">
+    <Field>
       <input type="hidden" name={name} value={value} />
 
       <Popover open={open} onOpenChange={setOpen}>
@@ -46,14 +46,14 @@ export function DatePickerSimple({
           <Button
             variant="outline"
             id={name}
-            className="w-full justify-start font-normal hover:bg-slate-800"
+            className="w-full justify-start font-normal"
             type="button"
           >
             {date ? date.toLocaleDateString("es-ES") : "Seleccionar fecha"}
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-auto p-0 bg-black border-slate-800" align="start">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
             selected={date}
@@ -68,7 +68,7 @@ export function DatePickerSimple({
             endMonth={new Date(añoActual, 11)}
             classNames={{
               dropdown:
-                " bg-black text-white border border-slate-700 rounded-md p-0.5 text-xs focus:ring-0 outline-none cursor-pointer max-w-[80px]",
+                "border-input bg-transparent rounded-md p-0.5 text-xs outline-none focus:ring-0 cursor-pointer max-w-[80px]",
               caption_label: "hidden h-20",
               dropdown_year: "ml-2", // Un pequeño margen para separar mes de año
             }}

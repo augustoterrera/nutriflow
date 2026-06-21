@@ -2,8 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DatePickerSimple } from "@/components/pacientes/Date-picker";
+import Link from "next/link";
+
 import { obtenerPacienteAction, editarPacienteAction } from "./actions";
+import { PageShell } from "@/components/shared/page-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { PacienteForm } from "@/components/pacientes/PacienteForm";
+import { FieldError } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type P = {
   id: number;
@@ -95,77 +102,40 @@ export default function EditarPacientePage() {
     }
   }
 
-  if (loading) return null;
-  if (err) return <div style={{ padding: 24, color: "tomato" }}>Error: {err}</div>;
-  if (!p) return null;
-
   return (
-    <div style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <h1 style={{ margin: 0 }}>Editar paciente</h1>
-      </div>
+    <PageShell width="form">
+      <PageHeader
+        title="Editar paciente"
+        description="Actualizá los datos del paciente."
+      />
 
-      <form onSubmit={onSubmit} style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "repeat(2, 1fr)" }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>DNI</span>
-          <input name="dni" defaultValue={p.dni} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Nombre completo</span>
-          <input name="nombre_completo" defaultValue={p.nombre_completo} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Teléfono</span>
-          <input name="telefono" defaultValue={p.telefono ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Sexo</span>
-          <select name="sexo" defaultValue={(p.sexo ?? "").toUpperCase()} style={{ padding: 10 }} className="border border-white rounded-md">
-            <option className="bg-black" value="">Sin especificar</option>
-            <option className="bg-black" value="M">Masculino</option>
-            <option className="bg-black" value="F">Femenino</option>
-          </select>
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Fecha nacimiento</span>
-          <DatePickerSimple name="fecha_nacimiento" defaultValue={p.fecha_nacimiento ?? ""} />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Email</span>
-          <input name="email" defaultValue={p.email ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Dirección</span>
-          <input name="direccion" defaultValue={p.direccion ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Ocupación</span>
-          <input name="ocupacion" defaultValue={p.ocupacion ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Estado civil</span>
-          <input name="estado_civil" defaultValue={p.estado_civil ?? ""} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        <label style={{ display: "grid", gap: 6, gridColumn: "span 2" }}>
-          <span>Notas</span>
-          <textarea name="notas" defaultValue={p.notas ?? ""} rows={4} style={{ padding: 10 }} className="border border-white rounded-md" />
-        </label>
-
-        {err ? <div style={{ gridColumn: "span 2", color: "tomato" }}>{err}</div> : null}
-
-        <button type="submit" disabled={saving} className="bg-blue-700 text-white rounded-md" style={{ padding: 10, width: 220, gridColumn: "span 2" }}>
-          {saving ? "Guardando..." : "Guardar cambios"}
-        </button>
-      </form>
-    </div>
+      {loading ? (
+        <div className="grid gap-6 sm:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      ) : err && !p ? (
+        <FieldError>{err}</FieldError>
+      ) : p ? (
+        <form onSubmit={onSubmit}>
+          <PacienteForm defaultValues={p}>
+            <div className="flex flex-col gap-3">
+              {err ? <FieldError>{err}</FieldError> : null}
+              <div className="flex gap-2">
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Guardando..." : "Guardar cambios"}
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <Link href={`/dashboard/pacientes/${pacienteId}`}>
+                    Cancelar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </PacienteForm>
+        </form>
+      ) : null}
+    </PageShell>
   );
 }

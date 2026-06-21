@@ -1,13 +1,23 @@
-
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
+
 import { desactivarPacienteAction } from "./actions";
+import { PageShell } from "@/components/shared/page-shell";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export default function DesactivarPacientePage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const pacienteId = Number(params?.id);
 
@@ -33,30 +43,31 @@ export default function DesactivarPacientePage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 640 }}>
-      <h1 style={{ marginTop: 0 }}>Desactivar paciente</h1>
-      <p>Esto lo oculta del listado</p>
+    <PageShell width="form">
+      <Card>
+        <CardHeader>
+          <CardTitle>¿Desactivar paciente?</CardTitle>
+          <CardDescription>
+            El paciente deja de aparecer en el listado. Podés revertirlo desde la
+            papelera.
+          </CardDescription>
+        </CardHeader>
 
-      {err ? <div style={{ color: "tomato", marginTop: 10 }}>Error: {err}</div> : null}
+        {err ? (
+          <CardContent>
+            <FieldError>{err}</FieldError>
+          </CardContent>
+        ) : null}
 
-      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-        <button
-          onClick={onDisable}
-          disabled={busy}
-          className="bg-red-600 text-white rounded-md"
-          style={{ padding: "10px 14px" }}
-        >
-          {busy ? "Desactivando..." : "Sí, desactivar"}
-        </button>
-
-        <Link
-          href={`/dashboard/pacientes/${pacienteId}`}
-          className="bg-slate-800 border rounded-md"
-          style={{ padding: "10px 14px" }}
-        >
-          Cancelar
-        </Link>
-      </div>
-    </div>
+        <CardFooter className="gap-2">
+          <Button variant="destructive" onClick={onDisable} disabled={busy}>
+            {busy ? "Desactivando..." : "Sí, desactivar"}
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/dashboard/pacientes/${pacienteId}`}>Cancelar</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </PageShell>
   );
 }

@@ -1,5 +1,21 @@
 import Link from "next/link";
+import { Users } from "lucide-react";
 import { getDB } from "@/lib/db";
+
+import { PageShell } from "@/components/shared/page-shell";
+import { PageHeader } from "@/components/shared/page-header";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Pagination } from "@/components/shared/pagination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 
 const PAGE_SIZE = 15;
 
@@ -9,7 +25,6 @@ export default async function PacientesPage(props: {
   const sp = (await props.searchParams) ?? {};
   const q = (sp?.q ?? "").trim();
   const page = Math.max(1, Number(sp?.p ?? 1) || 1);
-  const offset = (page - 1) * PAGE_SIZE;
 
   const db = await getDB();
 
@@ -35,124 +50,114 @@ export default async function PacientesPage(props: {
     : [PAGE_SIZE, safeOffset];
 
   const pacientes = await db.all(
-    q
-      ? `select id, dni, nombre_completo, telefono
-         from pacientes
-         ${where}
-         order by nombre_completo asc
-         limit ? offset ?`
-      : `select id, dni, nombre_completo, telefono
-         from pacientes
-         ${where}
-         order by nombre_completo asc
-         limit ? offset ?`,
+    `select id, dni, nombre_completo, telefono
+     from pacientes
+     ${where}
+     order by nombre_completo asc
+     limit ? offset ?`,
     paramsList
   );
 
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ margin: 0 }}>Pacientes</h1>
+  const hrefForPage = (p: number) =>
+    `/dashboard/pacientes?p=${p}${q ? `&q=${encodeURIComponent(q)}` : ""}`;
 
-      <form style={{ margin: "12px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <input
+  return (
+    <PageShell>
+      <PageHeader
+        title="Pacientes"
+        description={`${total} ${total === 1 ? "paciente activo" : "pacientes activos"} en el sistema.`}
+        actions={
+          <Button asChild>
+            <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
+          </Button>
+        }
+      />
+
+      <form className="mb-4 flex flex-wrap items-center gap-2">
+        <Input
           name="q"
           defaultValue={q}
           placeholder="Buscar por DNI o nombre…"
-          style={{ padding: 10, width: 320 }}
+          className="max-w-xs"
         />
-        <button style={{ padding: 10 }}>Buscar</button>
-
-        <Link href="/dashboard/pacientes/nuevo" style={{ padding: 10 }}>
-          Nuevo paciente
-        </Link>
+        <Button type="submit" variant="secondary">
+          Buscar
+        </Button>
       </form>
 
-      <div style={{ opacity: 0.8, fontSize: 13, marginBottom: 10 }}>
-        Total: <b>{total}</b> · Página <b>{safePage}</b> de <b>{totalPages}</b>
-      </div>
-
       {pacientes.length === 0 ? (
-        <p>No hay pacientes todavía.</p>
+        <EmptyState
+          icon={Users}
+          title={q ? "Sin resultados" : "Todavía no hay pacientes"}
+          description={
+            q
+              ? "Probá con otro DNI o nombre."
+              : "Creá el primero para empezar a trabajar."
+          }
+          action={
+            q ? undefined : (
+              <Button asChild>
+                <Link href="/dashboard/pacientes/nuevo">Nuevo paciente</Link>
+              </Button>
+            )
+          }
+        />
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ textAlign: "left", opacity: 0.85 }}>
-                <th style={thStyle}>Nombre</th>
-                <th style={thStyle}>DNI</th>
-                <th style={thStyle}>Teléfono</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>Acciones</th>
-              </tr>
-            </thead>
+        <div className="space-y-4">
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>DNI</TableHead>
+                  <TableHead>Teléfono</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pacientes.map((p: any) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/dashboard/pacientes/${p.id}`}
+                        className="hover:underline"
+                      >
+                        {p.nombre_completo}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {p.dni}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {p.telefono ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/dashboard/pacientes/${p.id}/editar`}>
+                            Editar
+                          </Link>
+                        </Button>
+                        <Button variant="destructive" size="sm" asChild>
+                          <Link href={`/dashboard/pacientes/${p.id}/desactivar`}>
+                            Desactivar
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-            <tbody>
-              {pacientes.map((p: any) => (
-                <tr key={p.id} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                  <td style={tdStyle}>
-                    <Link href={`/dashboard/pacientes/${p.id}`}>{p.nombre_completo}</Link>
-                  </td>
-                  <td style={tdStyle}>{p.dni}</td>
-                  <td style={tdStyle}>{p.telefono ?? "-"}</td>
-
-                  <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
-                    <Link
-                      href={`/dashboard/pacientes/${p.id}/editar`}
-                      style={{ padding: "6px 10px", display: "inline-block" }}
-                      className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
-                    >
-                      Editar
-                    </Link>
-
-                    <Link
-                      href={`/dashboard/pacientes/${p.id}/desactivar`}
-                      style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                      className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
-                    >
-                      Desactivar
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Pagination
+            page={safePage}
+            totalPages={totalPages}
+            hrefFor={hrefForPage}
+          />
         </div>
       )}
-
-      <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center" }}>
-        <Link
-          href={`/dashboard/pacientes?p=${Math.max(1, safePage - 1)}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-          style={{
-            padding: "8px 10px",
-            pointerEvents: safePage <= 1 ? "none" : "auto",
-            opacity: safePage <= 1 ? 0.4 : 1,
-          }}
-        >
-          ← Anterior
-        </Link>
-
-        <Link
-          href={`/dashboard/pacientes?p=${Math.min(totalPages, safePage + 1)}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-          style={{
-            padding: "8px 10px",
-            pointerEvents: safePage >= totalPages ? "none" : "auto",
-            opacity: safePage >= totalPages ? 0.4 : 1,
-          }}
-        >
-          Siguiente →
-        </Link>
-      </div>
-    </div>
+    </PageShell>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  padding: "8px 8px",
-  borderBottom: "1px solid rgba(255,255,255,0.12)",
-  whiteSpace: "nowrap",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "8px 8px",
-  verticalAlign: "top",
-  whiteSpace: "nowrap",
-};

@@ -86,6 +86,73 @@ export function riesgoICC(icc: number | null, sexo: Sexo) {
     : { riesgo: "Riesgo bajo", alto: false };
 }
 
+export type NivelRiesgo = "Bajo" | "Aumentado" | "Alto" | "Muy alto";
+
+/**
+ * Riesgo cardiometabólico orientativo: combina cintura (por sexo), WHtR (cintura/altura)
+ * e IMC como amplificador. Devuelve el nivel y las señales que lo justifican.
+ * Función pura para reutilizar entre el badge del header y la tarjeta clínica.
+ */
+export function riesgoCardiometabolico(opts: {
+  sexo?: Sexo;
+  cinturaCm?: number | null;
+  alturaCm?: number | null;
+  imc?: number | null;
+}): { nivel: NivelRiesgo | null; razones: string[]; whtr: number | null } {
+  const { sexo, cinturaCm, alturaCm, imc } = opts;
+  if (!cinturaCm || cinturaCm <= 0) {
+    return { nivel: null, razones: [], whtr: null };
+  }
+
+  const razones: string[] = [];
+
+  // Cintura por sexo (umbral aumentado / alto). Sexo desconocido usa cortes masculinos.
+  const esF = normalizarSexo(sexo) === "F";
+  const aumentado = esF ? 80 : 94;
+  const alto = esF ? 88 : 102;
+  let sCintura = 0;
+  if (cinturaCm >= alto) sCintura = 2;
+  else if (cinturaCm >= aumentado) sCintura = 1;
+  if (sCintura === 2) razones.push("cintura alta");
+  else if (sCintura === 1) razones.push("cintura aumentada");
+  else razones.push("cintura en rango");
+
+  // WHtR (si hay altura): >=0.5 aumenta riesgo, >=0.6 muy alto.
+  let sWhtr = 0;
+  let whtr: number | null = null;
+  if (alturaCm && alturaCm > 0) {
+    whtr = cinturaCm / alturaCm;
+    if (whtr >= 0.6) sWhtr = 2;
+    else if (whtr >= 0.5) sWhtr = 1;
+    if (sWhtr === 2) razones.push("WHtR muy alto (≥0.60)");
+    else if (sWhtr === 1) razones.push("WHtR alto (≥0.50)");
+  } else {
+    razones.push("faltó altura (no WHtR)");
+  }
+
+  // IMC como amplificador.
+  let amp = 0;
+  if (imc !== null && imc !== undefined) {
+    if (imc >= 30) {
+      amp = 1;
+      razones.push("IMC ≥ 30");
+    } else if (imc >= 25) {
+      razones.push("IMC ≥ 25");
+    }
+  }
+
+  // Puntaje total → nivel (0-1 bajo, 2 aumentado, 3-4 alto, 5 muy alto).
+  const total = sCintura + sWhtr + amp;
+  let nivelNum = 0;
+  if (total <= 1) nivelNum = 0;
+  else if (total === 2) nivelNum = 1;
+  else if (total <= 4) nivelNum = 2;
+  else nivelNum = 3;
+
+  const nivel = (["Bajo", "Aumentado", "Alto", "Muy alto"] as const)[nivelNum];
+  return { nivel, razones, whtr };
+}
+
 export function edadDesdeFechaNacimiento(fechaISO: string | null | undefined) {
   if (!fechaISO) return null;
   const fecha = new Date(`${fechaISO}T00:00:00`);

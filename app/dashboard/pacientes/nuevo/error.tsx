@@ -3,6 +3,16 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { PageShell } from "@/components/shared/page-shell";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 export default function Error({
   error,
   reset,
@@ -15,26 +25,21 @@ export default function Error({
   }, [error]);
 
   return (
-    <div style={{ padding: 24, maxWidth: 520 }}>
-      <h1>Ocurrió un error</h1>
-
-      <p style={{ color: "crimson", marginTop: 10 }}>
-        {error.message || "No se pudo crear el paciente."}
-      </p>
-
-      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-        <button onClick={() => reset()} style={{ padding: 10 }}>
-          Intentar de nuevo
-        </button>
-
-        <Link href="/dashboard/pacientes" style={{ padding: 10 }}>
-          Ir a pacientes
-        </Link>
-      </div>
-
-      <p style={{ marginTop: 16, fontSize: 12, opacity: 0.7 }}>
-        Tip: si fue por DNI repetido, probá con otro número.
-      </p>
-    </div>
+    <PageShell width="form">
+      <Card>
+        <CardHeader>
+          <CardTitle>Ocurrió un error</CardTitle>
+          <CardDescription className="text-destructive">
+            {error.message || "No se pudo crear el paciente."}
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="gap-2">
+          <Button onClick={() => reset()}>Intentar de nuevo</Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/pacientes">Ir a pacientes</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </PageShell>
   );
 }

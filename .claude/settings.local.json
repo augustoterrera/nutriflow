@@ -23,7 +23,13 @@
       "Bash(kill -9 199123)",
       "Bash(xargs -r kill -9)",
       "Bash(curl -s -o /dev/null -m 2 http://localhost:3459/lock)",
-      "mcp__shadcn__get_item_examples_from_registries"
+      "mcp__shadcn__get_item_examples_from_registries",
+      "Bash(cd /Users/augustoterrera/Proyectos/NutriFlow *)",
+      "Bash(grep -nE 'style=\\\\{\\\\{|bg-\\(slate|blue|red|green|gray\\)-[0-9]|border-\\(white|gray\\)|bg-white|rgba\\\\\\(|#[0-9a-fA-F]{3,6}' \"app/dashboard/pacientes/[id]/page.tsx\")",
+      "Bash(grep -nE 'style=\\\\{\\\\{|#[0-9a-fA-F]{3,6}|bg-\\(slate|blue|red|green\\)-[0-9]|border-\\(white|gray\\)|text-black|rgba\\\\\\(' \"app/dashboard/pacientes/[id]/page.tsx\" components/pacientes/RiesgoCardiometabolico.tsx)"
+    ],
+    "additionalDirectories": [
+      "/Users/augustoterrera/Proyectos/NutriFlow/app/dashboard/pacientes/[id]"
     ]
   }
 }

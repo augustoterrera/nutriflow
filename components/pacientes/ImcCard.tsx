@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { clasificarIMC } from "@/lib/calculos";
+import { cn } from "@/lib/utils";
 
-const coloresPorClase: Record<string, { bg: string; text: string }> = {
-    ok: { bg: "#f0fdf4", text: "#166534" },
-    warning: { bg: "#fef9c3", text: "#854d0e" },
-    danger: { bg: "#fee2e2", text: "#991b1b" },
-    muted: { bg: "#f5f5f5", text: "#525252" },
+// Estado clínico → tokens semánticos (fondo tenue + texto/borde del mismo matiz)
+const estiloPorClase: Record<string, string> = {
+    ok: "border-success/20 bg-success/10 text-success",
+    warning: "border-warning/20 bg-warning/10 text-warning",
+    danger: "border-destructive/20 bg-destructive/10 text-destructive",
+    muted: "border-border bg-muted/40 text-muted-foreground",
 };
 
 export function ImcCard({
@@ -19,8 +21,7 @@ export function ImcCard({
 }) {
     const clasificacion = useMemo(() => {
         const { categoria, claseCss } = clasificarIMC(imc);
-        const colores = coloresPorClase[claseCss] ?? coloresPorClase.muted;
-        return { label: categoria, ...colores };
+        return { label: categoria, estilo: estiloPorClase[claseCss] ?? estiloPorClase.muted };
     }, [imc]);
 
     // “flash” corto cuando cambia IMC (o sea, cambió la última medición)
@@ -33,28 +34,17 @@ export function ImcCard({
 
     return (
         <div
-            style={{
-                padding: 10,
-                borderRadius: 10,
-                border: "1px solid #e5e5e5",
-                background: clasificacion.bg,
-                color: clasificacion.text,
-
-                // transición suave de colores
-                transition: "background-color 450ms ease, color 450ms ease, box-shadow 450ms ease, transform 450ms ease",
-                // efecto “flash” al cambiar
-                boxShadow: flash
-                    ? "0 10px 30px rgba(0,0,0,0.18), 0 0 0 6px rgba(0,0,0,0.06)"
-                    : "0 0 0 rgba(0,0,0,0)",
-                transform: flash ? "scale(1.03)" : "scale(1)",
-
-            }}
+            className={cn(
+                "rounded-lg border p-3 transition-all duration-500",
+                clasificacion.estilo,
+                flash && "scale-[1.02] shadow-lg"
+            )}
         >
-            <div style={{ fontWeight: 700 }}>
+            <div className="font-bold">
                 IMC: {imc.toFixed(1)} · {clasificacion.label}
             </div>
 
-            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>
+            <div className="mt-0.5 text-xs opacity-90">
                 {fecha ? <>Última medición: {fecha}</> : <>Última medición</>}
             </div>
         </div>

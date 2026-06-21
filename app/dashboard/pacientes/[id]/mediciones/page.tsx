@@ -1,207 +1,287 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getDB } from "@/lib/db";
-import { calcularIMC } from "@/lib/calculos";
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { Activity, Pencil, Plus, Trash2 } from "lucide-react"
 
-const PAGE_SIZE = 15;
+import { PacienteWorkspaceHeader } from "@/components/pacientes/paciente-workspace-header"
+import { EmptyState } from "@/components/shared/empty-state"
+import { PageShell } from "@/components/shared/page-shell"
+import { Pagination } from "@/components/shared/pagination"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { calcularIMC } from "@/lib/calculos"
+import { getDB } from "@/lib/db"
+import { cn } from "@/lib/utils"
 
-export default async function MedicionesHistorialPage(props: {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<{ p?: string }>;
+const PAGE_SIZE = 15
+
+type MedicionRow = {
+  id: number
+  fecha: string
+  peso_kg: number | null
+  altura_cm: number | null
+  cintura_cm: number | null
+  cadera_cm: number | null
+  cuello_cm: number | null
+  grasa_pct: number | null
+  musculo_pct: number | null
+  brazo_cm: number | null
+  muneca_cm: number | null
+  observaciones: string | null
+}
+
+export default async function MedicionesHistorialPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{ p?: string }>
 }) {
-  const { id: idStr } = await props.params;
-  const id = Number(idStr);
-  if (!Number.isFinite(id)) notFound();
+  const { id: idStr } = await params
+  const pacienteId = Number(idStr)
+  if (!Number.isFinite(pacienteId)) notFound()
 
-  const sp = (await props.searchParams) ?? {};
-  const page = Math.max(1, Number(sp.p ?? 1) || 1);
-  const offset = (page - 1) * PAGE_SIZE;
-
-  const db = await getDB();
+  const sp = (await searchParams) ?? {}
+  const page = Math.max(1, Number(sp.p ?? 1) || 1)
+  const db = await getDB()
 
   const paciente = await db.get(
-    `select id, dni, nombre_completo
+    `select id, dni, nombre_completo, fecha_nacimiento, sexo, ocupacion
      from pacientes
      where id = ? and activo = 1`,
-    [id]
-  );
-  if (!paciente) notFound();
+    [pacienteId]
+  )
+  if (!paciente) notFound()
 
   const rowCount = await db.get(
-    `select count(*) as total
-     from mediciones
-     where paciente_id = ?`,
-    [id]
-  );
+    `select count(*) as total from mediciones where paciente_id = ?`,
+    [pacienteId]
+  )
+  const total = Number(rowCount?.total ?? 0)
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const offset = (safePage - 1) * PAGE_SIZE
 
-  const total = Number(rowCount?.total ?? 0);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  // si p es demasiado grande, corregimos bajando a la última
-  const safePage = Math.min(page, totalPages);
-  const safeOffset = (safePage - 1) * PAGE_SIZE;
-
-  const mediciones = await db.all(
+  const mediciones = (await db.all(
     `select id, fecha, peso_kg, altura_cm, cintura_cm, cadera_cm, cuello_cm,
             grasa_pct, musculo_pct, brazo_cm, muneca_cm, observaciones
      from mediciones
      where paciente_id = ?
      order by date(fecha) desc, id desc
      limit ? offset ?`,
-    [id, PAGE_SIZE, safeOffset]
-  );
+    [pacienteId, PAGE_SIZE, offset]
+  )) as MedicionRow[]
 
-  // Misma regla que la ficha: si la fila no tiene altura, usamos la última conocida
   const alturaRefRow = await db.get(
     `select altura_cm from mediciones
      where paciente_id = ? and altura_cm is not null
      order by date(fecha) desc, id desc
      limit 1`,
-    [id]
-  );
-  const alturaRef = alturaRefRow?.altura_cm ?? null;
+    [pacienteId]
+  )
+  const alturaRef = alturaRefRow?.altura_cm ?? null
+  const baseHref = `/dashboard/pacientes/${pacienteId}/mediciones`
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Mediciones</h1>
-          <div style={{ opacity: 0.75, marginTop: 4 }}>
-            {paciente.nombre_completo} · DNI <b>{paciente.dni}</b>
+    <PageShell>
+      <PacienteWorkspaceHeader paciente={paciente} />
+
+      <section aria-labelledby="mediciones-title">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="mediciones-title" className="text-lg font-semibold">
+              Mediciones
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {total} {total === 1 ? "medición registrada" : "mediciones registradas"}
+            </p>
           </div>
+          <Button asChild>
+            <Link href={`${baseHref}/nueva`}>
+              <Plus />
+              Nueva medición
+            </Link>
+          </Button>
         </div>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link
-            href={`/dashboard/pacientes/${id}/mediciones/nueva`}
-            style={{ padding: 10 }}
-            className="bg-slate-800 rounded-md border"
-          >
-            Nueva medición
-          </Link>
-        </div>
-      </div>
+        {mediciones.length === 0 ? (
+          <EmptyState
+            icon={Activity}
+            title="Todavía no hay mediciones"
+            description="Cargá peso, altura y perímetros para comenzar el seguimiento clínico."
+            action={
+              <Button asChild>
+                <Link href={`${baseHref}/nueva`}>Crear primera medición</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <Card className="gap-0 overflow-hidden py-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-4">Fecha</TableHead>
+                  <TableHead>Peso</TableHead>
+                  <TableHead>Cintura</TableHead>
+                  <TableHead>IMC</TableHead>
+                  <TableHead>WHtR</TableHead>
+                  <TableHead>Altura</TableHead>
+                  <TableHead>Extras</TableHead>
+                  <TableHead className="pr-4 text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mediciones.map((medicion, index) => {
+                  const anterior = mediciones[index + 1] ?? null
+                  const altura = medicion.altura_cm || alturaRef
+                  const alturaAnterior = anterior?.altura_cm || alturaRef
+                  const imc = medicion.peso_kg && altura
+                    ? calcularIMC(Number(medicion.peso_kg), Number(altura))
+                    : null
+                  const imcAnterior = anterior?.peso_kg && alturaAnterior
+                    ? calcularIMC(Number(anterior.peso_kg), Number(alturaAnterior))
+                    : null
+                  const whtr = medicion.cintura_cm && altura
+                    ? Number(medicion.cintura_cm) / Number(altura)
+                    : null
+                  const extras = [
+                    medicion.cadera_cm ? `Cadera ${Number(medicion.cadera_cm).toFixed(1)} cm` : null,
+                    medicion.cuello_cm ? `Cuello ${Number(medicion.cuello_cm).toFixed(1)} cm` : null,
+                    medicion.grasa_pct ? `Grasa ${Number(medicion.grasa_pct).toFixed(1)}%` : null,
+                    medicion.musculo_pct ? `Músculo ${Number(medicion.musculo_pct).toFixed(1)}%` : null,
+                    medicion.brazo_cm ? `Brazo ${Number(medicion.brazo_cm).toFixed(1)} cm` : null,
+                    medicion.muneca_cm ? `Muñeca ${Number(medicion.muneca_cm).toFixed(1)} cm` : null,
+                    medicion.observaciones ? `Obs: ${medicion.observaciones}` : null,
+                  ].filter(Boolean).join(" · ")
 
-      <div style={{ marginTop: 16, opacity: 0.8, fontSize: 13 }}>
-        Total: <b>{total}</b> · Página <b>{safePage}</b> de <b>{totalPages}</b>
-      </div>
+                  return (
+                    <TableRow key={medicion.id}>
+                      <TableCell className="px-4">
+                        <div className="font-medium">{formatFecha(medicion.fecha)}</div>
+                        {safePage === 1 && index === 0 ? (
+                          <div className="text-success mt-0.5 text-xs">más reciente</div>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <MetricCell
+                          value={medicion.peso_kg}
+                          previous={anterior?.peso_kg}
+                          unit="kg"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <MetricCell
+                          value={medicion.cintura_cm}
+                          previous={anterior?.cintura_cm}
+                          unit="cm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <MetricCell value={imc} previous={imcAnterior} />
+                      </TableCell>
+                      <TableCell>{whtr !== null ? whtr.toFixed(2) : "—"}</TableCell>
+                      <TableCell>{altura ? `${Number(altura).toFixed(0)} cm` : "—"}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-80">
+                        <div className="truncate" title={extras || undefined}>{extras || "—"}</div>
+                      </TableCell>
+                      <TableCell className="pr-4">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link
+                              href={`${baseHref}/${medicion.id}/editar`}
+                              aria-label={`Editar medición del ${formatFecha(medicion.fecha)}`}
+                              title="Editar"
+                            >
+                              <Pencil />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive"
+                            asChild
+                          >
+                            <Link
+                              href={`${baseHref}/${medicion.id}/eliminar`}
+                              aria-label={`Eliminar medición del ${formatFecha(medicion.fecha)}`}
+                              title="Eliminar"
+                            >
+                              <Trash2 />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
 
-      <div style={{ marginTop: 12, overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ opacity: 0.8, textAlign: "left" }}>
-              <th style={thStyle}>Fecha</th>
-              <th style={thStyle}>Peso</th>
-              <th style={thStyle}>Altura</th>
-              <th style={thStyle}>Cintura</th>
-              <th style={thStyle}>Cadera</th>
-              <th style={thStyle}>IMC</th>
-              <th style={thStyle}>WHtR</th>
-              <th style={thStyle}>Extra</th>
-              <th style={{ ...thStyle, textAlign: "right" }}>Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {mediciones.length === 0 ? (
-              <tr>
-                <td style={tdStyle} colSpan={9}>
-                  No hay mediciones cargadas.
-                </td>
-              </tr>
-            ) : (
-              mediciones.map((m: any) => {
-                const altura = m?.altura_cm || alturaRef;
-
-                const imc =
-                  m?.peso_kg && altura
-                    ? calcularIMC(Number(m.peso_kg), Number(altura))
-                    : null;
-
-                const whtr =
-                  m?.cintura_cm && altura
-                    ? Number(m.cintura_cm) / Number(altura)
-                    : null;
-
-                return (
-                  <tr key={m.id} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                    <td style={tdStyle}>{m.fecha}</td>
-                    <td style={tdStyle}>{m.peso_kg ? `${Number(m.peso_kg).toFixed(1)} kg` : "-"}</td>
-                    <td style={tdStyle}>{m.altura_cm ? `${Number(m.altura_cm).toFixed(0)} cm` : "-"}</td>
-                    <td style={tdStyle}>{m.cintura_cm ? `${Number(m.cintura_cm).toFixed(1)} cm` : "-"}</td>
-                    <td style={tdStyle}>{m.cadera_cm ? `${Number(m.cadera_cm).toFixed(1)} cm` : "-"}</td>
-                    <td style={tdStyle}>{imc !== null ? imc.toFixed(1) : "-"}</td>
-                    <td style={tdStyle}>{whtr !== null ? whtr.toFixed(2) : "-"}</td>
-                    <td style={tdStyle}>
-                      {[
-                        m.cuello_cm ? `Cuello ${Number(m.cuello_cm).toFixed(1)} cm` : null,
-                        m.grasa_pct ? `Grasa ${Number(m.grasa_pct).toFixed(1)}%` : null,
-                        m.musculo_pct ? `Músculo ${Number(m.musculo_pct).toFixed(1)}%` : null,
-                        m.brazo_cm ? `Brazo ${Number(m.brazo_cm).toFixed(1)} cm` : null,
-                        m.muneca_cm ? `Muñeca ${Number(m.muneca_cm).toFixed(1)} cm` : null,
-                        m.observaciones ? `Obs: ${m.observaciones}` : null,
-                      ].filter(Boolean).join(" · ") || "-"}
-                    </td>
-
-                    <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
-                      <Link
-                        href={`/dashboard/pacientes/${id}/mediciones/${m.id}/editar`}
-                        style={{ padding: "6px 10px", display: "inline-block" }}
-                        className="bg-blue-700 hover:bg-blue-500 text-white rounded-md"
-                      >
-                        Editar
-                      </Link>
-                      <Link
-                        href={`/dashboard/pacientes/${id}/mediciones/${m.id}/eliminar`}
-                        style={{ padding: "6px 10px", display: "inline-block", opacity: 0.85 }}
-                        className="bg-red-600 hover:bg-red-500 text-white m-2 rounded-md"
-                      >
-                        Eliminar
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center" }}>
-        <Link
-          href={`/dashboard/pacientes/${id}/mediciones?p=${Math.max(1, safePage - 1)}`}
-          style={{
-            padding: "8px 10px",
-            pointerEvents: safePage <= 1 ? "none" : "auto",
-            opacity: safePage <= 1 ? 0.4 : 1,
-          }}
-        >
-          ← Anterior
-        </Link>
-
-        <Link
-          href={`/dashboard/pacientes/${id}/mediciones?p=${Math.min(totalPages, safePage + 1)}`}
-          style={{
-            padding: "8px 10px",
-            pointerEvents: safePage >= totalPages ? "none" : "auto",
-            opacity: safePage >= totalPages ? 0.4 : 1,
-          }}
-        >
-          Siguiente →
-        </Link>
-      </div>
-    </div>
-  );
+        {totalPages > 1 ? (
+          <div className="mt-4">
+            <Pagination
+              page={safePage}
+              totalPages={totalPages}
+              hrefFor={(nextPage) => `${baseHref}?p=${nextPage}`}
+            />
+          </div>
+        ) : null}
+      </section>
+    </PageShell>
+  )
 }
 
-const thStyle: React.CSSProperties = {
-  padding: "8px 8px",
-  borderBottom: "1px solid rgba(255,255,255,0.12)",
-  whiteSpace: "nowrap",
-};
+function MetricCell({
+  value,
+  previous,
+  unit,
+}: {
+  value: number | null
+  previous?: number | null
+  unit?: string
+}) {
+  if (value === null || value === undefined) return <>—</>
+  const current = Number(value)
+  const previousNumber = previous === null || previous === undefined ? null : Number(previous)
+  const delta = previousNumber !== null ? current - previousNumber : null
 
-const tdStyle: React.CSSProperties = {
-  padding: "8px 8px",
-  verticalAlign: "top",
-  whiteSpace: "nowrap",
-};
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <span>{current.toFixed(1)}{unit ? ` ${unit}` : ""}</span>
+      {delta !== null ? (
+        <span
+          className={cn(
+            "text-xs font-medium",
+            delta < 0 && "text-success",
+            delta > 0 && "text-destructive",
+            delta === 0 && "text-muted-foreground"
+          )}
+        >
+          {delta < 0 ? "↓" : delta > 0 ? "↑" : "→"}{Math.abs(delta).toFixed(1)}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+function formatFecha(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.slice(0, 10))
+  if (!match) return value
+  const [, year, month, day] = match
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date).replaceAll(".", "")
+}
