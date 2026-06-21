@@ -175,17 +175,21 @@ export function EvolucionDialog(props: { mediciones: Medicion[] }) {
     const asc = [...props.mediciones].sort((a, b) =>
       a.fecha > b.fecha ? 1 : -1
     );
-    // Si una medición no trae altura, usamos la última altura conocida hasta esa fecha
-    let alturaConocida: number | null = null;
-    return asc.map((m) => {
-      if (m.altura_cm != null) alturaConocida = m.altura_cm;
-      return {
-        fecha: m.fecha,
-        peso_kg: m.peso_kg ?? null,
-        cintura_cm: m.cintura_cm ?? null,
-        imc: calcularIMC(m.peso_kg ?? null, m.altura_cm ?? alturaConocida),
-      };
-    });
+    // Si una medición no trae altura, usamos la última altura conocida hasta esa fecha.
+    // Usamos reduce con la altura acumulada para no reasignar una variable externa.
+    return asc.reduce<{ puntos: Punto[]; alturaConocida: number | null }>(
+      (acc, m) => {
+        const alturaConocida = m.altura_cm ?? acc.alturaConocida;
+        acc.puntos.push({
+          fecha: m.fecha,
+          peso_kg: m.peso_kg ?? null,
+          cintura_cm: m.cintura_cm ?? null,
+          imc: calcularIMC(m.peso_kg ?? null, alturaConocida),
+        });
+        return { puntos: acc.puntos, alturaConocida };
+      },
+      { puntos: [], alturaConocida: null }
+    ).puntos;
   }, [props.mediciones]);
 
   const unidad = unidadDe(metrica);

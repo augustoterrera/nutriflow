@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk -F: '{print $1}')",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__get_add_command_for_items",
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm lint *)",
+      "mcp__shadcn__get_audit_checklist",
+      "Bash(curl -s http://localhost:3457/lock)",
+      "Read(//tmp/**)",
+      "Bash(grep -oE 'theme[^\"]{0,40}')",
+      "Bash(pkill -f \"next dev -p 3457\")",
+      "Bash(kill 192694)",
+      "Bash(pkill -9 -f \"next dev\")",
+      "Bash(pkill -9 -f \"next-server\")",
+      "Bash(curl -s -o /dev/null -m 3 -w \"%{http_code}\" http://localhost:3457/lock)",
+      "Bash(node scripts/init-db.js)",
+      "Bash(curl -s -o /dev/null -m 2 http://localhost:3458/lock)",
+      "Bash(kill -9 199123)",
+      "Bash(xargs -r kill -9)",
+      "Bash(curl -s -o /dev/null -m 2 http://localhost:3459/lock)"
+    ]
+  }
+}
