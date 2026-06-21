@@ -19,3 +19,14 @@ Ejecutar en la PC objetivo.
 - Exportar plan con "Guardar como PDF".
 - Desactivar paciente, revisar papelera y restaurar.
 - Cerrar app, desconectar internet y verificar que todo sigue funcionando.
+
+## Pacientes — cierre de Fase 5
+
+- Buscar pacientes por nombre y por DNI; limpiar la búsqueda y verificar la paginación.
+- Crear un paciente válido y comprobar que aparece en el listado.
+- Intentar crear otro paciente con el mismo DNI y comprobar el mensaje de error.
+- Abrir el detalle y recorrer `Resumen`, `Ficha`, `Anamnesis`, `Mediciones` y `Planes`.
+- En `Ficha`, activar el lápiz, provocar errores de DNI/email y verificar foco/mensaje accesible.
+- Guardar cambios desde `Ficha`, recargar y comprobar que persisten.
+- Editar desde el acceso directo del listado y comprobar que persiste.
+- Desactivar el paciente, comprobar que desaparece del listado y restaurarlo desde Papelera.

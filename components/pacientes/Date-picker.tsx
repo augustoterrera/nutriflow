@@ -18,9 +18,13 @@ function toISODate(d: Date) {
 export function DatePickerSimple({
   name,
   defaultValue,
+  ariaInvalid = false,
+  ariaDescribedBy,
 }: {
   name: string
   defaultValue?: string // "YYYY-MM-DD"
+  ariaInvalid?: boolean
+  ariaDescribedBy?: string
 }) {
   const [open, setOpen] = React.useState(false)
 
@@ -48,6 +52,8 @@ export function DatePickerSimple({
             id={name}
             className="w-full justify-start font-normal"
             type="button"
+            aria-invalid={ariaInvalid || undefined}
+            aria-describedby={ariaDescribedBy}
           >
             {date ? date.toLocaleDateString("es-ES") : "Seleccionar fecha"}
           </Button>

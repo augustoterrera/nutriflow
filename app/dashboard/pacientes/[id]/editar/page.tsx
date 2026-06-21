@@ -11,6 +11,12 @@ import { PacienteForm } from "@/components/pacientes/PacienteForm";
 import { FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PacienteValidationError,
+  campoPacienteDesdeMensaje,
+  normalizarDatosPaciente,
+  type PacienteField,
+} from "@/lib/pacientes";
 
 type P = {
   id: number;
@@ -34,6 +40,7 @@ export default function EditarPacientePage() {
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [invalidField, setInvalidField] = useState<PacienteField | null>(null);
   const [saving, setSaving] = useState(false);
   const [p, setP] = useState<P | null>(null);
 
@@ -69,35 +76,42 @@ export default function EditarPacientePage() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
+    setInvalidField(null);
 
     const fd = new FormData(e.currentTarget);
-
-    const dni = String(fd.get("dni") ?? "").trim();
-    const nombre_completo = String(fd.get("nombre_completo") ?? "").trim();
-
-    if (!dni) return setErr("DNI obligatorio");
-    if (!nombre_completo) return setErr("Nombre obligatorio");
-
-    const input = {
-      paciente_id: pacienteId,
-      dni,
-      nombre_completo,
-      sexo: String(fd.get("sexo") ?? "").trim() || null,
-      fecha_nacimiento: String(fd.get("fecha_nacimiento") ?? "").trim() || null,
-      telefono: String(fd.get("telefono") ?? "").trim() || null,
-      email: String(fd.get("email") ?? "").trim() || null,
-      direccion: String(fd.get("direccion") ?? "").trim() || null,
-      estado_civil: String(fd.get("estado_civil") ?? "").trim() || null,
-      ocupacion: String(fd.get("ocupacion") ?? "").trim() || null,
-      notas: String(fd.get("notas") ?? "").trim() || null,
-    };
+    let datos: ReturnType<typeof normalizarDatosPaciente>;
+    try {
+      datos = normalizarDatosPaciente({
+        dni: String(fd.get("dni") ?? ""),
+        nombre_completo: String(fd.get("nombre_completo") ?? ""),
+        sexo: String(fd.get("sexo") ?? ""),
+        fecha_nacimiento: String(fd.get("fecha_nacimiento") ?? ""),
+        telefono: String(fd.get("telefono") ?? ""),
+        email: String(fd.get("email") ?? ""),
+        direccion: String(fd.get("direccion") ?? ""),
+        estado_civil: String(fd.get("estado_civil") ?? ""),
+        ocupacion: String(fd.get("ocupacion") ?? ""),
+        notas: String(fd.get("notas") ?? ""),
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Datos inválidos.";
+      setErr(message);
+      setInvalidField(
+        error instanceof PacienteValidationError
+          ? error.field
+          : campoPacienteDesdeMensaje(message)
+      );
+      return;
+    }
 
     setSaving(true);
     try {
-      await editarPacienteAction(input);
-    } catch (e: any) {
-      console.error(e);
-      setErr(String(e?.message ?? e));
+      await editarPacienteAction({ paciente_id: pacienteId, ...datos });
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "No se pudo guardar.";
+      setErr(message);
+      setInvalidField(campoPacienteDesdeMensaje(message));
       setSaving(false);
     }
   }
@@ -119,9 +133,13 @@ export default function EditarPacientePage() {
         <FieldError>{err}</FieldError>
       ) : p ? (
         <form onSubmit={onSubmit}>
-          <PacienteForm defaultValues={p}>
+          <PacienteForm
+            defaultValues={p}
+            invalidFields={invalidField ? { [invalidField]: true } : undefined}
+            errorId="paciente-edit-error"
+          >
             <div className="flex flex-col gap-3">
-              {err ? <FieldError>{err}</FieldError> : null}
+              {err ? <FieldError id="paciente-edit-error">{err}</FieldError> : null}
               <div className="flex gap-2">
                 <Button type="submit" disabled={saving}>
                   {saving ? "Guardando..." : "Guardar cambios"}

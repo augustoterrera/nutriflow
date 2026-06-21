@@ -3,58 +3,20 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDB } from "@/lib/db";
+import {
+  normalizarDatosPaciente,
+  type PacienteDataInput,
+} from "@/lib/pacientes";
 
-type EditPacienteInput = {
+type EditPacienteInput = PacienteDataInput & {
   paciente_id: number;
-  dni: string;
-  nombre_completo: string;
-  sexo: string | null;
-  fecha_nacimiento: string | null;
-  telefono: string | null;
-  email: string | null;
-  direccion: string | null;
-  estado_civil: string | null;
-  ocupacion: string | null;
-  notas: string | null;
 };
 
-function limpiarNumeros(s: string) {
-  return s.replace(/\D/g, "");
-}
-
 async function actualizarPaciente(input: EditPacienteInput) {
-  const dni = limpiarNumeros(input.dni);
-  const nombre = input.nombre_completo.trim();
-
   if (!Number.isFinite(input.paciente_id) || input.paciente_id <= 0) {
     throw new Error("ID de paciente inválido.");
   }
-
-  if (!dni || dni.length < 6) {
-    throw new Error("DNI inválido.");
-  }
-
-  if (!nombre) {
-    throw new Error("Nombre completo es obligatorio.");
-  }
-
-  // Validación sexo (normalizamos a mayúsculas igual que al crear)
-  const sexo = input.sexo?.trim().toUpperCase() || null;
-  if (sexo && !["M", "F"].includes(sexo)) {
-    throw new Error('Sexo inválido. Usá "M" o "F".');
-  }
-
-  // Validación fecha
-  const fecha_nacimiento = input.fecha_nacimiento?.trim() || null;
-  if (fecha_nacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(fecha_nacimiento)) {
-    throw new Error("Fecha de nacimiento inválida. Usá formato YYYY-MM-DD.");
-  }
-
-  // Validación email
-  const email = input.email?.trim() || null;
-  if (email && !email.includes("@")) {
-    throw new Error("Email inválido.");
-  }
+  const datos = normalizarDatosPaciente(input);
 
   const db = await getDB();
 
@@ -85,16 +47,16 @@ async function actualizarPaciente(input: EditPacienteInput) {
          actualizado_en = datetime('now')
        WHERE id = ?`,
       [
-        dni,
-        nombre,
-        sexo,
-        fecha_nacimiento,
-        input.telefono?.trim() || null,
-        email,
-        input.direccion?.trim() || null,
-        input.ocupacion?.trim() || null,
-        input.estado_civil?.trim() || null,
-        input.notas?.trim() || null,
+        datos.dni,
+        datos.nombre_completo,
+        datos.sexo,
+        datos.fecha_nacimiento,
+        datos.telefono,
+        datos.email,
+        datos.direccion,
+        datos.ocupacion,
+        datos.estado_civil,
+        datos.notas,
         input.paciente_id,
       ]
     );

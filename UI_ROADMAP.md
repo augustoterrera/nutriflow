@@ -566,16 +566,22 @@ solo aparece en subrutas, es accesible y no quedan controles “Volver” duplic
 > de Planes comparten ahora `PageShell`, barra de sección, `Card`, `Table`/cards, `EmptyState`, acciones por
 > icono y paginación. El detalle de cada CRUD continúa en sus fases 6–8. Lint/tests/build verdes.
 
-**Archivos.**
+> **Cierre final de Fase 5 (2026-06-21).** Se agregó label accesible al buscador y asociación
+> `aria-invalid`/`aria-describedby` entre campos y errores en la edición tradicional y la Ficha. La
+> normalización/validación se centralizó en `lib/pacientes.ts` y quedó cubierta por Vitest (DNI, nombre,
+> sexo, fecha, email y normalización). Verificación final: greps de deuda vacíos en los archivos propios de
+> Fase 5, `pnpm lint` sin errores, **13 tests** aprobados y `pnpm build` verde.
+
+**Archivos originales de la fase.**
 - Lista: `app/dashboard/pacientes/page.tsx`
 - Alta: `app/dashboard/pacientes/nuevo/page.tsx` (+ `actions.tsx`, `error.tsx`)
 - Edición: `app/dashboard/pacientes/[id]/editar/page.tsx`
 - Detalle: `app/dashboard/pacientes/[id]/page.tsx`
 - Confirmación: `app/dashboard/pacientes/[id]/desactivar/page.tsx`
-- Componentes a crear: `components/ui/select-native.tsx` (§4.8), `components/shared/pagination.tsx` (§4.9),
+- Componentes incluidos: `components/ui/select-native.tsx` (§4.8), `components/shared/pagination.tsx` (§4.9),
   `components/pacientes/PacienteForm.tsx` (compartido alta/edición).
 
-**Estado actual / problemas.**
+**Snapshot inicial — deuda resuelta.**
 - `pacientes/page.tsx`: `style={{}}` por todos lados, `<table>` con estilos inline + `rgba(...)`, `<input>`/
   `<button>` crudos, links con `bg-blue-700`/`bg-red-600` hardcodeados, paginación con `pointerEvents`/`opacity`.
 - `pacientes/nuevo/page.tsx`: `style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)" }}`, `<label>/<input>/
@@ -585,22 +591,24 @@ solo aparece en subrutas, es accesible y no quedan controles “Volver” duplic
   `EvolucionDialogLazy` (ojo: esos componentes también tienen `style`/`rgba`, se tocan en Fase 7).
 - `desactivar/page.tsx`: confirmación con estilos inline.
 
-**Pasos.**
-1. **SelectNative y Pagination**: crear ambos (recetas §4.8, §4.9).
+**Plan ejecutado.**
+1. **SelectNative y Pagination**: creados según las recetas §4.8 y §4.9.
 2. **PacienteForm** (`components/pacientes/PacienteForm.tsx`): formulario único con campos DNI, nombre, teléfono,
    sexo (`SelectNative`), fecha nacimiento (`DatePickerSimple` existente), email, dirección, ocupación, estado
-   civil, notas (`Textarea`). Props: `defaultValues?` y `action`. Usar receta §4.2 (grid responsive 2 cols).
-   Conectar `nuevo` y `[id]/editar` a este componente (pasando la action y los valores).
+   civil y notas (`Textarea`). Recibe `defaultValues`, estado de campos inválidos y contenido de acciones;
+   alta/edición conservan el `<form>` y envío apropiado. Usa grid responsive de 2 columnas.
 3. **Lista** (`pacientes/page.tsx`): reescribir con `PageShell`+`PageHeader`, buscador (§4.5), `Table` (§4.3),
    acciones Editar (`variant="ghost/outline"`) y Desactivar (`variant="destructive"` o link rojo→`destructive`),
    `Pagination` (§4.9), `EmptyState` si no hay resultados. Eliminar `thStyle`/`tdStyle`/`style`/`rgba`.
-4. **Detalle** (`[id]/page.tsx`): `PageShell`+`PageHeader` (nombre del paciente + acciones editar/desactivar),
-   datos en `Card`s, secciones (Resumen, Anamnesis, Mediciones, Planes) con contadores y links. Quitar `style`/
-   colores hardcodeados propios (los de `ImcCard`/Riesgo/Evolucion quedan para Fase 7, anotarlo).
+4. **Detalle** (`[id]/page.tsx`): `PageShell` + `PacienteWorkspaceHeader`, vitals, tabs y resumen clínico en
+   `Card`s. La edición administrativa vive en `Ficha`; Anamnesis, Mediciones y Planes tienen rutas propias.
+   Los componentes clínicos/gráfico que continúan evolucionando quedan documentados en Fase 7.
 5. **Confirmación** (`desactivar/page.tsx`): receta §4.6.
 
-**DoD.** §6 en los 5 archivos. `grep` de §6 vacío en `app/dashboard/pacientes/` (excepto componentes de Fase 7).
-Build verde.
+**DoD de Fase 5.** §6 se verifica en los archivos propios listados arriba, más `ficha/`, `PacienteForm`,
+`PacienteNav`, `PacienteWorkspaceHeader`, `SelectNative`, `Pagination` y `lib/pacientes.ts`. Las subrutas de
+anamnesis, mediciones y planes se verifican en las fases 6–8; por eso no forman parte del grep de cierre de
+esta fase. Greps acotados vacíos, lint sin errores, tests y build verdes.
 
 ---
 

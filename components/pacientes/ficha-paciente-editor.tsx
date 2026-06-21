@@ -19,6 +19,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { FieldError } from "@/components/ui/field"
+import {
+  PacienteValidationError,
+  campoPacienteDesdeMensaje,
+  normalizarDatosPaciente,
+  type PacienteField,
+} from "@/lib/pacientes"
 
 type PacienteFicha = PacienteDefaults & {
   id: number
@@ -32,6 +38,7 @@ function FichaPacienteEditor({ paciente }: { paciente: PacienteFicha }) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [invalidField, setInvalidField] = useState<PacienteField | null>(null)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -40,53 +47,57 @@ function FichaPacienteEditor({ paciente }: { paciente: PacienteFicha }) {
 
   function empezarEdicion() {
     setError(null)
+    setInvalidField(null)
     setSaved(false)
     setEditing(true)
   }
 
   function cancelarEdicion() {
     setError(null)
+    setInvalidField(null)
     setEditing(false)
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setInvalidField(null)
     setSaved(false)
 
     const formData = new FormData(event.currentTarget)
-    const dni = String(formData.get("dni") ?? "").trim()
-    const nombreCompleto = String(formData.get("nombre_completo") ?? "").trim()
-
-    if (!dni) {
-      setError("El DNI es obligatorio.")
+    let datosNormalizados: ReturnType<typeof normalizarDatosPaciente>
+    try {
+      datosNormalizados = normalizarDatosPaciente({
+        dni: String(formData.get("dni") ?? ""),
+        nombre_completo: String(formData.get("nombre_completo") ?? ""),
+        sexo: optionalValue(formData, "sexo"),
+        fecha_nacimiento: optionalValue(formData, "fecha_nacimiento"),
+        telefono: optionalValue(formData, "telefono"),
+        email: optionalValue(formData, "email"),
+        direccion: optionalValue(formData, "direccion"),
+        estado_civil: optionalValue(formData, "estado_civil"),
+        ocupacion: optionalValue(formData, "ocupacion"),
+        notas: optionalValue(formData, "notas"),
+      })
+    } catch (cause: unknown) {
+      const message = cause instanceof Error ? cause.message : "Datos inválidos."
+      setError(message)
+      setInvalidField(
+        cause instanceof PacienteValidationError
+          ? cause.field
+          : campoPacienteDesdeMensaje(message)
+      )
       return
     }
-    if (!nombreCompleto) {
-      setError("El nombre es obligatorio.")
-      return
-    }
 
-    const input = {
-      paciente_id: datos.id,
-      dni,
-      nombre_completo: nombreCompleto,
-      sexo: optionalValue(formData, "sexo"),
-      fecha_nacimiento: optionalValue(formData, "fecha_nacimiento"),
-      telefono: optionalValue(formData, "telefono"),
-      email: optionalValue(formData, "email"),
-      direccion: optionalValue(formData, "direccion"),
-      estado_civil: optionalValue(formData, "estado_civil"),
-      ocupacion: optionalValue(formData, "ocupacion"),
-      notas: optionalValue(formData, "notas"),
-    }
+    const input = { paciente_id: datos.id, ...datosNormalizados }
 
     setSaving(true)
     try {
       await guardarFichaPacienteAction(input)
       setDatos((actual) => ({
         ...actual,
-        ...input,
+        ...datosNormalizados,
         id: actual.id,
       }))
       setEditing(false)
@@ -94,7 +105,9 @@ function FichaPacienteEditor({ paciente }: { paciente: PacienteFicha }) {
       router.refresh()
     } catch (cause: unknown) {
       console.error(cause)
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la ficha.")
+      const message = cause instanceof Error ? cause.message : "No se pudo guardar la ficha."
+      setError(message)
+      setInvalidField(campoPacienteDesdeMensaje(message))
     } finally {
       setSaving(false)
     }
@@ -128,9 +141,13 @@ function FichaPacienteEditor({ paciente }: { paciente: PacienteFicha }) {
       <CardContent>
         {editing ? (
           <form onSubmit={onSubmit}>
-            <PacienteForm defaultValues={datos}>
+            <PacienteForm
+              defaultValues={datos}
+              invalidFields={invalidField ? { [invalidField]: true } : undefined}
+              errorId="paciente-ficha-error"
+            >
               <div className="space-y-3">
-                {error ? <FieldError>{error}</FieldError> : null}
+                {error ? <FieldError id="paciente-ficha-error">{error}</FieldError> : null}
                 <div className="flex flex-wrap gap-2">
                   <Button type="submit" disabled={saving}>
                     <Save />
@@ -199,7 +216,7 @@ function FichaDato({ label, value }: { label: string; value: unknown }) {
   return (
     <div className="grid gap-1 text-sm sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-3">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-words">{displayValue(value)}</dd>
+      <dd className="min-w-0 wrap-break-words">{displayValue(value)}</dd>
     </div>
   )
 }

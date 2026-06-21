@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Pagination } from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableHeader,
@@ -73,8 +74,12 @@ export default async function PacientesPage(props: {
         }
       />
 
-      <form className="mb-4 flex flex-wrap items-center gap-2">
+      <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
+        <Label htmlFor="buscar-paciente" className="sr-only">
+          Buscar paciente por DNI o nombre
+        </Label>
         <Input
+          id="buscar-paciente"
           name="q"
           defaultValue={q}
           placeholder="Buscar por DNI o nombre…"
