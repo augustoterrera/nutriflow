@@ -17,6 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import { logoutAction } from "@/app/logout/actions"
 
 // Menu items.
 const items = [
@@ -109,19 +110,20 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="border-t pt-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-full group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
-            asChild
-          >
-            <Link href="/logout" onClick={closeMobileMenu}>
+          <form action={logoutAction}>
+            <Button
+              type="submit"
+              variant="destructive"
+              size="sm"
+              className="w-full group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
+              onClick={closeMobileMenu}
+            >
               <LogOut />
               <span className="group-data-[collapsible=icon]:hidden">
                 Cerrar sesión
               </span>
-            </Link>
-          </Button>
+            </Button>
+          </form>
         </div>
       </SidebarFooter>
     </Sidebar>
